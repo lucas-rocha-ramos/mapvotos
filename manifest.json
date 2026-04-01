@@ -1,0 +1,21 @@
+{
+  "name": "Painel Chico Guarnieri - Eleições 2022",
+  "short_name": "Painel 2022",
+  "description": "Painel interativo de mapeamento de votos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a110d",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
