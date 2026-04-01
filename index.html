@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Painel Chico Guarnieri - Eleições 2022</title>
   
+  <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#10b981">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Painel 2022">
   <link rel="apple-touch-icon" href="https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png">
-  
-  <link rel="manifest" id="manifest-link">
 
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -65,17 +64,23 @@
           <h1 class="text-xl font-bold tracking-tight text-white leading-tight">Chico Guarnieri</h1>
           <p class="text-emerald-400/70 text-[10px] font-medium uppercase tracking-wider">Deputado Estadual • 2022</p>
         </div>
-        <button onclick="document.getElementById('loginModal').classList.remove('hidden')" class="text-white/30 hover:text-emerald-400 transition-colors p-2 bg-white/5 rounded-xl">
-            <i data-lucide="lock" class="w-4 h-4"></i>
-        </button>
+        
+        <div class="flex items-center gap-1.5 z-10 relative">
+          <button id="installBtn" class="hidden text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors px-2.5 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> App
+          </button>
+          <button onclick="document.getElementById('loginModal').classList.remove('hidden')" class="text-white/30 hover:text-emerald-400 transition-colors p-2 bg-white/5 rounded-xl">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+          </button>
+        </div>
       </div>
       
-      <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-3 mb-4 flex items-center justify-between">
+      <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-3 mb-4 flex items-center justify-between relative z-10">
         <span class="text-[10px] text-emerald-100/50 uppercase font-semibold">Total de Votos</span>
         <span id="totalVotesDisplay" class="text-xl font-bold text-emerald-400">0</span>
       </div>
       
-      <div class="relative">
+      <div class="relative z-10">
         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 w-[14px] h-[14px]"></i>
         <input type="text" id="searchInput" placeholder="Pesquisar município..." class="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors"/>
       </div>
@@ -201,44 +206,45 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // --- 🚀 CONFIGURAÇÃO PWA (Progressive Web App) ---
-    function setupPWA() {
-        // 1. Injeta o Manifest Dinamicamente
-        const manifest = {
-            "name": "Painel Chico Guarnieri",
-            "short_name": "Painel 2022",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#0a110d",
-            "theme_color": "#10b981",
-            "icons": [{
-                "src": "https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png",
-                "sizes": "192x192",
-                "type": "image/png"
-            }]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
+    // --- 🚀 CONFIGURAÇÃO E REGISTRO PWA ---
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
 
-        // 2. Regista o Service Worker para cache (Trabalha Offline/Instalação)
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                self.addEventListener('install', (e) => self.skipWaiting());
-                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-                self.addEventListener('fetch', (e) => {
-                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-                });
-            `;
-            const swBlob = new Blob([swCode], {type: 'application/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(err => console.log('SW Registration failed:', err));
-        }
-
-        // Corrige a altura em browsers mobile (Chrome/Safari ignoram a barra de endereço no 100vh)
-        const setVh = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight}px`);
-        window.addEventListener('resize', setVh);
-        setVh();
+    // Registra o Service Worker (sw.js)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+          console.log('Service Worker Registrado!', reg);
+        }).catch(err => {
+          console.log('Falha ao registrar Service Worker:', err);
+        });
+      });
     }
-    setupPWA();
+
+    // Captura o evento de instalação do navegador
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault(); // Impede o prompt automático padrão
+      deferredPrompt = e; // Guarda o evento para usar no clique
+      installBtn.classList.remove('hidden'); // Mostra o nosso botão "App"
+    });
+
+    // Lógica ao clicar no botão de instalar
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt(); // Mostra a tela de instalação do sistema
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('Usuário aceitou a instalação');
+        }
+        deferredPrompt = null;
+        installBtn.classList.add('hidden'); // Esconde o botão após a ação
+      }
+    });
+
+    // Corrige a altura em browsers mobile (Safari/Chrome)
+    const setVh = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight}px`);
+    window.addEventListener('resize', setVh);
+    setVh();
 
     // Inicializa os ícones Lucide
     lucide.createIcons();
