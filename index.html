@@ -121,8 +121,8 @@
 
     <div class="bg-white/5 border border-white/10 rounded-3xl p-5">
       <p class="text-[9px] text-white/50 uppercase tracking-wider mb-1">Maior Colégio Eleitoral</p>
-      <p class="text-lg font-bold text-emerald-400" id="topCityName">Tangará da Serra</p>
-      <p class="text-xs text-white/50 mt-1" id="topCityVotes">6.302 votos</p>
+      <p class="text-lg font-bold text-emerald-400" id="topCityName">Carregando...</p>
+      <p class="text-xs text-white/50 mt-1" id="topCityVotes">0 votos</p>
     </div>
   </div>
 
@@ -290,19 +290,19 @@
 
     // --- DADOS ---
     const KNOWN_CITIES = [
-      { name: 'Tangará da Serra', lat: -14.6189, lng: -57.4846, region: 'Região Oeste', initialVotes: 6302, population: 106434 },
-      { name: 'Cuiabá', lat: -15.6014, lng: -56.0979, region: 'Outras Regiões', initialVotes: 613, population: 650912 },
-      { name: 'Várzea Grande', lat: -15.6461, lng: -56.1326, region: 'Vale do R. Cuiabá', initialVotes: 129, population: 299472 },
-      { name: 'Sapezal', lat: -13.5458, lng: -58.8142, region: 'Região Norte', initialVotes: 78, population: 26822 }, 
-      { name: 'Juína', lat: -11.3756, lng: -58.7411, region: 'Médio Norte', initialVotes: 48, population: 41206 }, 
-      { name: 'Poconé', lat: -16.2567, lng: -56.6228, region: 'Médio Norte', initialVotes: 48, population: 33315 },
-      { name: 'Brasnorte', lat: -12.1444, lng: -57.9989, region: 'Médio Norte', initialVotes: 10, population: 20571 },
-      { name: 'Cáceres', lat: -16.0705, lng: -57.6826, region: 'Outras Regiões', initialVotes: 36, population: 89681 },
-      { name: 'Colniza', lat: -9.4147, lng: -59.0469, region: 'Outras Regiões', initialVotes: 15, population: 39989 },
-      { name: 'Alta Floresta', lat: -9.8761, lng: -56.0847, region: 'Outras Regiões', initialVotes: 9, population: 51959 },
-      { name: 'Querência', lat: -12.6053, lng: -52.2206, region: 'Outras Regiões', initialVotes: 7, population: 18360 },
-      { name: 'Paranatinga', lat: -14.4303, lng: -54.0583, region: 'Outras Regiões', initialVotes: 3, population: 23337 },
-      { name: 'Apiacás', lat: -9.4444, lng: -57.4086, region: 'Outras Regiões', initialVotes: 1, population: 10567 },
+      { name: 'Tangará da Serra', lat: -14.6189, lng: -57.4846, region: 'Região Oeste', initialVotes: 0, population: 106434 },
+      { name: 'Cuiabá', lat: -15.6014, lng: -56.0979, region: 'Outras Regiões', initialVotes: 0, population: 650912 },
+      { name: 'Várzea Grande', lat: -15.6461, lng: -56.1326, region: 'Vale do R. Cuiabá', initialVotes: 0, population: 299472 },
+      { name: 'Sapezal', lat: -13.5458, lng: -58.8142, region: 'Região Norte', initialVotes: 0, population: 26822 }, 
+      { name: 'Juína', lat: -11.3756, lng: -58.7411, region: 'Médio Norte', initialVotes: 0, population: 41206 }, 
+      { name: 'Poconé', lat: -16.2567, lng: -56.6228, region: 'Médio Norte', initialVotes: 0, population: 33315 },
+      { name: 'Brasnorte', lat: -12.1444, lng: -57.9989, region: 'Médio Norte', initialVotes: 0, population: 20571 },
+      { name: 'Cáceres', lat: -16.0705, lng: -57.6826, region: 'Outras Regiões', initialVotes: 0, population: 89681 },
+      { name: 'Colniza', lat: -9.4147, lng: -59.0469, region: 'Outras Regiões', initialVotes: 0, population: 39989 },
+      { name: 'Alta Floresta', lat: -9.8761, lng: -56.0847, region: 'Outras Regiões', initialVotes: 0, population: 51959 },
+      { name: 'Querência', lat: -12.6053, lng: -52.2206, region: 'Outras Regiões', initialVotes: 0, population: 18360 },
+      { name: 'Paranatinga', lat: -14.4303, lng: -54.0583, region: 'Outras Regiões', initialVotes: 0, population: 23337 },
+      { name: 'Apiacás', lat: -9.4444, lng: -57.4086, region: 'Outras Regiões', initialVotes: 0, population: 10567 },
       { name: 'Água Boa', lat: -14.0503, lng: -52.1600, region: 'Outras Regiões', initialVotes: 0, population: 26861 }
     ];
 
@@ -310,10 +310,10 @@
 
     let CITIES_DATA = [...KNOWN_CITIES, ...EXTRA_CITIES_STR.split(',').map((item, index) => {
         const [name, lat, lng] = item.split('|');
-        return { name, lat: parseFloat(lat), lng: parseFloat(lng), region: 'Outras Regiões', initialVotes: 0, population: Math.floor(Math.random() * 30000) + 5000 };
+        return { name, lat: parseFloat(lat), lng: parseFloat(lng), region: 'Outras Regiões', initialVotes: 0, population: 0 };
     })].filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i).map((city, index) => {
         let votes = city.initialVotes;
-        return { ...city, id: index + 1, votes: votes, turnout: votes > 0 ? ((votes / (city.population * 0.7)) * 100).toFixed(2) : '0.00' }
+        return { ...city, id: index + 1, votes: votes, turnout: (votes > 0 && city.population > 0) ? ((votes / (city.population * 0.7)) * 100).toFixed(2) : '0.00' }
     }).sort((a, b) => b.votes - a.votes);
 
     // Variáveis Globais
@@ -339,7 +339,7 @@
                         const localCity = CITIES_DATA.find(c => c.name === remoteCity.name);
                         if (localCity) {
                             localCity.votes = parseInt(remoteCity.votes) || 0; localCity.population = parseInt(remoteCity.population) || localCity.population;
-                            localCity.turnout = localCity.votes > 0 ? ((localCity.votes / (localCity.population * 0.7)) * 100).toFixed(2) : '0.00';
+                            localCity.turnout = (localCity.votes > 0 && localCity.population > 0) ? ((localCity.votes / (localCity.population * 0.7)) * 100).toFixed(2) : '0.00';
                             hasChanges = true;
                         }
                     }
@@ -463,9 +463,12 @@
         CITIES_DATA.forEach(c => { m[m.hasOwnProperty(c.region) ? c.region : 'Outras Regiões'] += c.votes; total += c.votes; });
         REGION_DATA.forEach((r, i) => r.votes = Object.values(m)[i]);
         document.getElementById('totalVotesDisplay').textContent = formatNumber(total);
-        if(CITIES_DATA.length > 0) {
+        if(CITIES_DATA.length > 0 && CITIES_DATA[0].votes > 0) {
             document.getElementById('topCityName').textContent = CITIES_DATA[0].name;
             document.getElementById('topCityVotes').textContent = formatNumber(CITIES_DATA[0].votes) + ' votos';
+        } else {
+            document.getElementById('topCityName').textContent = 'Nenhum Voto';
+            document.getElementById('topCityVotes').textContent = '0 votos';
         }
         if (regionChartInstance) { regionChartInstance.data.datasets[0].data = REGION_DATA.map(d => d.votes); regionChartInstance.update(); } 
         else { initChart(); }
@@ -487,7 +490,7 @@
         const c = CITIES_DATA.find(c => c.id == document.getElementById('adminCitySelect').value);
         if(c) {
             c.votes = parseInt(document.getElementById('adminVotesInput').value)||0; c.population = parseInt(document.getElementById('adminPopInput').value)||1;
-            c.turnout = c.votes > 0 ? ((c.votes / (c.population * 0.7)) * 100).toFixed(2) : '0.00';
+            c.turnout = (c.votes > 0 && c.population > 0) ? ((c.votes / (c.population * 0.7)) * 100).toFixed(2) : '0.00';
             applyTheme(document.getElementById('adminThemeColor').value); CITIES_DATA.sort((a,b)=>b.votes-a.votes); renderCities(); updateChartAndSummary(); refreshMarkers();
             alert("Salvo localmente! Configurar URL Script para nuvem.");
         }
@@ -496,8 +499,15 @@
     // ARRANQUE
     document.addEventListener('DOMContentLoaded', async () => {
         applyTheme(localStorage.getItem('themeColor') || '#10b981');
-        updateChartAndSummary(); renderCities(); initMap();
+        
+        // Renderiza o mapa e as listas zeradas primeiro
+        initMap(); 
+        updateChartAndSummary(); 
+        renderCities(); 
+        
         document.getElementById('searchInput').addEventListener('input', e => renderCities(e.target.value));
+        
+        // Puxa os dados reais e atualiza silenciosamente
         await loadDataFromSheets();
     });
   </script>
