@@ -935,8 +935,12 @@
       }).addTo(map);
 
       const geoJsonUrl = 'https://servicodados.ibge.gov.br/api/v3/malhas/estados/51?formato=application/vnd.geo+json&resolucao=5';
+      
       fetch(geoJsonUrl)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Falha ao comunicar com IBGE");
+            return res.json();
+        })
         .then(data => {
           window.defaultStyle = window.defaultStyle || { color: 'rgba(52, 211, 153, 0.6)', weight: 1.5, fillColor: '#0a110d', fillOpacity: 0.1 };
           window.highlightStyle = window.highlightStyle || { color: 'rgba(52, 211, 153, 0.8)', weight: 2.5, fillColor: 'rgba(16, 185, 129, 0.15)', fillOpacity: 1 };
@@ -954,10 +958,18 @@
               });
             }
           }).addTo(map);
-
-          document.getElementById('loadingSpinner').style.display = 'none';
         })
-        .catch(err => console.error("Erro IBGE:", err));
+        .catch(err => {
+            console.warn("Aviso: Não foi possível desenhar a fronteira de MT. O mapa base continuará a funcionar.", err);
+        })
+        .finally(() => {
+            // Garante que o spinner desaparece sempre, com sucesso ou erro!
+            const spinner = document.getElementById('loadingSpinner');
+            if (spinner) spinner.style.display = 'none';
+            
+            // Força o mapa a recalcular o seu tamanho para evitar áreas cinzentas
+            setTimeout(() => map.invalidateSize(), 500);
+        });
 
       CITIES_DATA.forEach(city => {
         const icon = L.divIcon({
@@ -975,8 +987,6 @@
         
         leafletMarkers.set(city.id, marker);
       });
-
-      setTimeout(() => map.invalidateSize(), 500);
     }
 
     document.getElementById('cityInfoModal').addEventListener('click', function(e) {
