@@ -5,19 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Chico Guarnieri - Eleições 2022</title>
   
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Extratores de Excel e PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
@@ -69,19 +64,16 @@
 </head>
 <body class="min-h-screen selection:bg-emerald-500/30 overflow-x-hidden overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row p-4 gap-6">
 
-  <!-- 1. PAINEL ESQUERDO -->
   <div class="w-full lg:w-[320px] xl:w-[380px] h-auto lg:h-full flex flex-col gap-4 flex-shrink-0 z-20">
     <div class="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden">
       <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-3xl rounded-full"></div>
       
       <div class="flex items-center gap-3 mb-2 relative">
-        <!-- FOTO DE PERFIL INSERIDA -->
         <img id="profilePic" src="https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png" alt="Perfil" class="w-11 h-11 rounded-full object-cover border-2 border-emerald-400" style="box-shadow: 0 0 15px rgba(16, 185, 129, 0.3)">
         
         <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent flex-1">
           Chico Guarnieri
         </h1>
-        <!-- Cadeado Admin -->
         <button onclick="document.getElementById('loginModal').classList.remove('hidden')" class="text-white/30 hover:text-white transition-colors p-1" title="Acesso Administrador">
             <i data-lucide="lock" class="w-5 h-5"></i>
         </button>
@@ -113,12 +105,10 @@
       </div>
 
       <div id="cityList" class="flex flex-col gap-2 p-2">
-        <!-- Renderizado via JS -->
-      </div>
+        </div>
     </div>
   </div>
 
-  <!-- 2. CENTRO: MAPA LEAFLET -->
   <div class="flex-1 relative min-h-[50vh] lg:min-h-0 lg:h-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl z-10 bg-[#0a110d]">
     
     <div id="loadingSpinner" class="absolute inset-0 flex items-center justify-center bg-[#0d1410] z-[600]">
@@ -132,7 +122,6 @@
     
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-emerald-500/5 blur-[80px] md:blur-[120px] rounded-full pointer-events-none z-[400]"></div>
     
-    <!-- LEGENDA -->
     <div class="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex justify-between items-end pointer-events-none z-[500]">
       <div class="bg-black/80 backdrop-blur-xl border border-emerald-500/30 p-3 sm:p-4 rounded-2xl flex flex-col gap-2 sm:gap-3 pointer-events-auto shadow-xl max-w-full overflow-x-auto custom-scrollbar">
          <p class="text-[10px] sm:text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1 whitespace-nowrap">Legenda (Votos)</p>
@@ -164,7 +153,6 @@
     </div>
   </div>
 
-  <!-- 3. PAINEL DIREITO -->
   <div class="w-full lg:w-[320px] xl:w-[400px] h-auto lg:h-full flex flex-col gap-4 flex-shrink-0 z-20">
     
     <div class="bg-gradient-to-br from-emerald-900/30 to-black/40 backdrop-blur-2xl border border-emerald-500/20 rounded-3xl p-6 shadow-xl flex-1 flex flex-col relative overflow-hidden">
@@ -203,7 +191,6 @@
     </div>
   </div>
 
-  <!-- MODAL INFORMAÇÃO DA CIDADE -->
   <div id="cityInfoModal" class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
       <div class="bg-[#0d1410] border border-emerald-500/30 p-8 rounded-3xl shadow-2xl w-[400px] max-w-[90%] relative transform scale-95 transition-transform duration-300" id="cityInfoContent">
           <button onclick="closeCityModal()" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -236,7 +223,6 @@
       </div>
   </div>
 
-  <!-- MODAL LOGIN ADMIN -->
   <div id="loginModal" class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center">
       <div class="bg-[#0d1410] border border-emerald-500/30 p-8 rounded-3xl shadow-2xl w-96 max-w-[90%] relative">
           <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="absolute top-4 right-4 text-white/50 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -247,7 +233,6 @@
       </div>
   </div>
 
-  <!-- MODAL DASHBOARD ADMIN (Cadastro, Cor e Upload) -->
   <div id="adminModal" class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center">
       <div class="bg-[#0d1410] border border-emerald-500/30 p-8 rounded-3xl shadow-2xl w-[500px] max-w-[90%] max-h-[90vh] overflow-y-auto relative custom-scrollbar">
           <button onclick="document.getElementById('adminModal').classList.add('hidden')" class="absolute top-4 right-4 text-white/50 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -255,8 +240,7 @@
           
           <label class="block text-xs font-semibold text-white/50 uppercase mb-2">Selecione o Município (141)</label>
           <select id="adminCitySelect" onchange="updateAdminInput()" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-3 text-white mb-4 focus:outline-none focus:border-emerald-500 custom-scrollbar">
-              <!-- Renderizado via JS -->
-          </select>
+              </select>
 
           <label class="block text-xs font-semibold text-white/50 uppercase mb-2">Quantidade de Votos</label>
           <input type="number" id="adminVotesInput" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-3 text-white mb-4 focus:outline-none focus:border-emerald-500">
@@ -264,7 +248,6 @@
           <label class="block text-xs font-semibold text-white/50 uppercase mb-2">Número de Habitantes</label>
           <input type="number" id="adminPopInput" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-3 text-white mb-4 focus:outline-none focus:border-emerald-500">
           
-          <!-- OPÇÃO DE COR DO TEMA -->
           <label class="block text-xs font-semibold text-white/50 uppercase mb-2 mt-4">Cor Principal do Tema</label>
           <div class="flex items-center gap-4 mb-4">
               <input type="color" id="adminThemeColor" class="w-14 h-10 bg-transparent border-0 rounded cursor-pointer p-0">
@@ -275,7 +258,6 @@
               <i data-lucide="save" class="w-5 h-5"></i> Guardar Alterações
           </button>
 
-          <!-- NOVO: ATUALIZAÇÃO EM MASSA (PDF / EXCEL) -->
           <div class="pt-6 border-t border-emerald-500/20">
               <label class="block text-xs font-semibold text-white/50 uppercase mb-2 flex items-center gap-1.5"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Atualizar População via Arquivo</label>
               <div class="bg-black/20 border border-emerald-500/20 rounded-xl p-4">
@@ -290,7 +272,6 @@
       </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     // Inicializa os ícones Lucide
@@ -413,7 +394,7 @@
 
     // Variáveis Globais de Estado
     let currentSelectedCityId = null;
-    let currentHoverSource = null; // <- NOVO: Controla se o rato veio da 'list' ou do 'map'
+    let currentHoverSource = null; 
     let map;
     let leafletMarkers = new Map();
     let regionChartInstance;
