@@ -308,7 +308,7 @@
         } catch (e) { console.error("Falha DB:", e); }
     }
 
-    // --- MAPA LEAFLET RESILIENTE ---
+    // --- MAPA LEAFLET RESILIENTE COM MÁSCARA INVERTIDA ---
     function initMap() {
         const mapContainer = document.getElementById('map');
         map = L.map(mapContainer, { zoomControl: false, attributionControl: false, fadeAnimation: false, maxBounds: L.latLngBounds(L.latLng(-18.5, -62.0), L.latLng(-7.0, -49.5)), maxBoundsViscosity: 1.0, minZoom: 4, maxZoom: 10 }).setView([-13.0, -56.0], window.innerWidth < 768 ? 5 : 6);
@@ -317,7 +317,35 @@
         fetch('https://servicodados.ibge.gov.br/api/v3/malhas/estados/51?formato=application/vnd.geo+json&resolucao=5')
             .then(res => res.ok ? res.json() : Promise.reject())
             .then(data => {
-                L.geoJSON(data, { style: { color: 'rgba(255, 255, 255, 0.1)', weight: 1.5, fillColor: 'transparent' }, onEachFeature: (f, layer) => { layer.on({ mouseover: (e) => { e.target.setStyle({ color: 'rgba(255,255,255,0.4)', weight: 2 }); if (!L.Browser.ie) e.target.bringToFront(); }, mouseout: (e) => e.target.setStyle({ color: 'rgba(255, 255, 255, 0.1)', weight: 1.5 }) }); } }).addTo(map);
+                // 1. Desenha a linha da fronteira e mantem o hover interativo
+                L.geoJSON(data, { 
+                    style: { color: 'rgba(255, 255, 255, 0.15)', weight: 1.5, fillColor: 'transparent' }, 
+                    onEachFeature: (f, layer) => { 
+                        layer.on({ 
+                            mouseover: (e) => { e.target.setStyle({ color: 'rgba(255,255,255,0.4)', weight: 2 }); if (!L.Browser.ie) e.target.bringToFront(); }, 
+                            mouseout: (e) => e.target.setStyle({ color: 'rgba(255, 255, 255, 0.15)', weight: 1.5 }) 
+                        }); 
+                    } 
+                }).addTo(map);
+
+                // 2. Máscara invertida para esconder tudo fora de MT (recorte)
+                const worldCoords = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
+                let holes = [];
+                data.features.forEach(f => {
+                    if (f.geometry.type === 'Polygon') {
+                        holes.push(f.geometry.coordinates[0].map(c => [c[1], c[0]]));
+                    } else if (f.geometry.type === 'MultiPolygon') {
+                        f.geometry.coordinates.forEach(p => holes.push(p[0].map(c => [c[1], c[0]])));
+                    }
+                });
+                
+                L.polygon([worldCoords, ...holes], { 
+                    color: 'transparent', 
+                    fillColor: '#0a110d', // Cor sólida do fundo da tela
+                    fillOpacity: 1, 
+                    interactive: false 
+                }).addTo(map);
+
             }).catch(() => {}).finally(() => { const sp = document.getElementById('loadingSpinner'); if(sp) sp.style.display='none'; map.invalidateSize(); });
 
         CITIES_DATA.forEach(city => {
