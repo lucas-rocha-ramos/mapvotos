@@ -2,9 +2,17 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Painel Chico Guarnieri - Eleições 2022</title>
   
+  <meta name="theme-color" content="#10b981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Painel 2022">
+  <link rel="apple-touch-icon" href="https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png">
+  
+  <link rel="manifest" id="manifest-link">
+
   <script src="https://cdn.tailwindcss.com"></script>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -17,343 +25,270 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
   <style>
+    :root {
+      --vh: 100vh;
+    }
     body {
       background-color: #0a110d;
       color: white;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      overscroll-behavior-y: none; /* Evita o "pull to refresh" chato no mobile */
     }
 
-    /* Custom Scrollbar */
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-    }
-    .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
+    /* Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.15); border-radius: 10px; }
 
     /* Leaflet Overrides */
     .leaflet-control-container { display: none !important; }
-    .leaflet-container {
-        background: transparent !important;
-        font-family: inherit;
-        cursor: default;
-    }
-    .custom-leaflet-marker {
-        background: none;
-        border: none;
-        cursor: pointer;
-    }
+    .leaflet-container { background: transparent !important; font-family: inherit; }
+    .custom-leaflet-marker { background: none; border: none; }
 
-    /* City Item Hover State Classes */
+    /* Hover States */
     .city-item-active {
-      background-color: rgba(16, 185, 129, 0.1) !important;
-      border-color: rgba(16, 185, 129, 0.3) !important;
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.15) !important;
+      background-color: rgba(16, 185, 129, 0.15) !important;
+      border-color: rgba(16, 185, 129, 0.4) !important;
     }
-    .city-item-active h3 {
-      color: #34d399 !important; /* emerald-400 */
-    }
+    .city-item-active h3 { color: #34d399 !important; }
   </style>
 </head>
-<body class="min-h-screen selection:bg-emerald-500/30 overflow-x-hidden overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row p-4 gap-6">
+<body class="h-screen w-screen overflow-hidden flex flex-col lg:flex-row bg-[#0a110d]">
 
-  <div class="w-full lg:w-[320px] xl:w-[380px] h-auto lg:h-full flex flex-col gap-4 flex-shrink-0 z-20">
-    <div class="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+  <div class="w-full lg:w-[350px] flex flex-col flex-shrink-0 z-20 border-b lg:border-b-0 lg:border-r border-white/10 bg-[#0d1410] h-[45vh] lg:h-full">
+    <div class="p-4 relative overflow-hidden flex-shrink-0">
       <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-3xl rounded-full"></div>
       
-      <div class="flex items-center gap-3 mb-2 relative">
-        <img id="profilePic" src="https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png" alt="Perfil" class="w-11 h-11 rounded-full object-cover border-2 border-emerald-400" style="box-shadow: 0 0 15px rgba(16, 185, 129, 0.3)">
-        
-        <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent flex-1">
-          Chico Guarnieri
-        </h1>
-        <button onclick="document.getElementById('loginModal').classList.remove('hidden')" class="text-white/30 hover:text-white transition-colors p-1" title="Acesso Administrador">
-            <i data-lucide="lock" class="w-5 h-5"></i>
+      <div class="flex items-center gap-3 mb-4">
+        <img id="profilePic" src="https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png" alt="Perfil" class="w-10 h-10 rounded-full object-cover border-2 border-emerald-400">
+        <div class="flex-1">
+          <h1 class="text-xl font-bold tracking-tight text-white leading-tight">Chico Guarnieri</h1>
+          <p class="text-emerald-400/70 text-[10px] font-medium uppercase tracking-wider">Deputado Estadual • 2022</p>
+        </div>
+        <button onclick="document.getElementById('loginModal').classList.remove('hidden')" class="text-white/30 hover:text-emerald-400 transition-colors p-2 bg-white/5 rounded-xl">
+            <i data-lucide="lock" class="w-4 h-4"></i>
         </button>
       </div>
-      <p class="text-emerald-200/70 text-sm font-medium mb-6">
-        Deputado Estadual • Eleições 2022
-      </p>
       
-      <div class="bg-emerald-900/30 border border-emerald-500/20 rounded-2xl p-4 mb-6 backdrop-blur-md">
-        <p class="text-xs text-emerald-100/50 uppercase tracking-wider font-semibold mb-1">Total de Votos</p>
-        <p id="totalVotesDisplay" class="text-3xl font-bold text-emerald-400">10.134</p>
+      <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-3 mb-4 flex items-center justify-between">
+        <span class="text-[10px] text-emerald-100/50 uppercase font-semibold">Total de Votos</span>
+        <span id="totalVotesDisplay" class="text-xl font-bold text-emerald-400">0</span>
       </div>
       
       <div class="relative">
-        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 w-[18px] h-[18px]"></i>
-        <input 
-          type="text" 
-          id="searchInput"
-          placeholder="Pesquisar município..." 
-          class="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
-        />
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 w-[14px] h-[14px]"></i>
+        <input type="text" id="searchInput" placeholder="Pesquisar município..." class="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors"/>
       </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto max-h-[50vh] lg:max-h-none bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-xl p-2 custom-scrollbar relative flex flex-col">
-      <div class="p-4 flex items-center justify-between sticky top-0 bg-[#0d1410]/95 backdrop-blur-md z-10 rounded-xl mb-2">
-         <span class="text-xs font-bold text-white/50 uppercase tracking-wider">Município</span>
-         <span class="text-xs font-bold text-white/50 uppercase tracking-wider">Votos</span>
+    <div class="flex-1 overflow-y-auto custom-scrollbar p-2 bg-black/20" id="cityList">
       </div>
-
-      <div id="cityList" class="flex flex-col gap-2 p-2">
-        </div>
-    </div>
   </div>
 
-  <div class="flex-1 relative min-h-[50vh] lg:min-h-0 lg:h-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl z-10 bg-[#0a110d]">
-    
-    <div id="loadingSpinner" class="absolute inset-0 flex items-center justify-center bg-[#0d1410] z-[600]">
+  <div class="flex-1 relative w-full h-[55vh] lg:h-full z-10 bg-[#0a110d] flex flex-col">
+    <div id="loadingSpinner" class="absolute inset-0 flex items-center justify-center bg-[#0a110d] z-[600]">
       <div class="flex flex-col items-center gap-4">
-         <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-500"></div>
-         <p class="text-emerald-500/50 text-sm font-medium animate-pulse">A inicializar Mapa Satélite & Fronteiras...</p>
+         <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
+         <p class="text-emerald-500/50 text-xs font-medium animate-pulse">A carregar mapa...</p>
       </div>
     </div>
     
-    <div id="map" class="absolute inset-0 z-0 bg-[#0a110d]"></div>
+    <div class="relative flex-1 w-full h-full min-h-[200px]">
+        <div id="map" class="absolute inset-0 w-full h-full"></div>
+    </div>
     
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-emerald-500/5 blur-[80px] md:blur-[120px] rounded-full pointer-events-none z-[400]"></div>
-    
-    <div class="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex justify-between items-end pointer-events-none z-[500]">
-      <div class="bg-black/80 backdrop-blur-xl border border-emerald-500/30 p-3 sm:p-4 rounded-2xl flex flex-col gap-2 sm:gap-3 pointer-events-auto shadow-xl max-w-full overflow-x-auto custom-scrollbar">
-         <p class="text-[10px] sm:text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1 whitespace-nowrap">Legenda (Votos)</p>
-         <div class="flex items-end gap-3 sm:gap-5 min-w-max">
-           <div class="flex flex-col items-center gap-2">
-             <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/40 border border-emerald-400/80"></div>
-             <span class="text-[10px] text-white/70">1 a 15</span>
-           </div>
-           <div class="flex flex-col items-center gap-2">
-             <div class="w-4 h-4 rounded-full bg-emerald-500/40 border border-emerald-400/80"></div>
-             <span class="text-[10px] text-white/70">16 a 50</span>
-           </div>
-           <div class="flex flex-col items-center gap-2">
-             <div class="w-5 h-5 rounded-full bg-emerald-500/40 border border-emerald-400/80"></div>
-             <span class="text-[10px] text-white/70">51 a 100</span>
-           </div>
-           <div class="flex flex-col items-center gap-2">
-             <div class="w-7 h-7 rounded-full bg-emerald-500/40 border border-emerald-400/80"></div>
-             <span class="text-[10px] text-white/70">100 a 1000</span>
-           </div>
-           <div class="flex flex-col items-center gap-2">
-             <div class="w-11 h-11 rounded-full bg-emerald-500/40 border border-emerald-400/80 flex items-center justify-center">
-               <div class="w-1/3 h-1/3 bg-white rounded-full"></div>
-             </div>
-             <span class="text-[10px] text-white/70">Acima de 1.000</span>
-           </div>
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-4 z-[500] pointer-events-none w-[90%] lg:w-auto">
+      <div class="bg-black/80 backdrop-blur-xl border border-emerald-500/30 p-2.5 rounded-2xl flex flex-col gap-2 pointer-events-auto shadow-2xl mx-auto overflow-x-auto custom-scrollbar">
+         <div class="flex items-end justify-between lg:justify-start gap-4 min-w-max px-2">
+           <div class="flex flex-col items-center gap-1.5"><div class="w-2 h-2 rounded-full bg-emerald-500/40 border border-emerald-400/80"></div><span class="text-[9px] text-white/70">1-15</span></div>
+           <div class="flex flex-col items-center gap-1.5"><div class="w-3 h-3 rounded-full bg-emerald-500/40 border border-emerald-400/80"></div><span class="text-[9px] text-white/70">16-50</span></div>
+           <div class="flex flex-col items-center gap-1.5"><div class="w-4 h-4 rounded-full bg-emerald-500/40 border border-emerald-400/80"></div><span class="text-[9px] text-white/70">51-100</span></div>
+           <div class="flex flex-col items-center gap-1.5"><div class="w-5 h-5 rounded-full bg-emerald-500/40 border border-emerald-400/80"></div><span class="text-[9px] text-white/70">100+</span></div>
+           <div class="flex flex-col items-center gap-1.5"><div class="w-7 h-7 rounded-full bg-emerald-500/40 border border-emerald-400/80 flex items-center justify-center"><div class="w-1/3 h-1/3 bg-white rounded-full"></div></div><span class="text-[9px] text-white/70">1000+</span></div>
          </div>
       </div>
     </div>
   </div>
 
-  <div class="w-full lg:w-[320px] xl:w-[400px] h-auto lg:h-full flex flex-col gap-4 flex-shrink-0 z-20">
-    
-    <div class="bg-gradient-to-br from-emerald-900/30 to-black/40 backdrop-blur-2xl border border-emerald-500/20 rounded-3xl p-6 shadow-xl flex-1 flex flex-col relative overflow-hidden">
-      <div class="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-3xl rounded-full"></div>
-
-      <div class="flex items-center gap-3 mb-6 relative">
-        <div class="p-2.5 bg-emerald-500/20 rounded-xl text-emerald-400 border border-emerald-500/30">
-          <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h2 class="text-lg font-bold text-white">Desempenho por Região</h2>
-          <p class="text-xs text-emerald-300/70 font-medium">Distribuição de votos contabilizados</p>
-        </div>
+  <div class="hidden lg:flex w-[350px] flex-col gap-4 flex-shrink-0 z-20 p-4 border-l border-white/10 bg-[#0d1410] h-full overflow-y-auto custom-scrollbar">
+    <div class="bg-gradient-to-br from-emerald-900/20 to-black/40 border border-emerald-500/20 rounded-3xl p-5 flex flex-col relative overflow-hidden h-[300px]">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-emerald-500/20 rounded-lg text-emerald-400"><i data-lucide="bar-chart-3" class="w-4 h-4"></i></div>
+        <h2 class="text-sm font-bold text-white">Desempenho por Região</h2>
       </div>
-
-      <div class="flex-1 w-full relative min-h-[350px]">
-        <canvas id="regionChart"></canvas>
-      </div>
-
-      <div class="mt-6 pt-4 border-t border-white/10">
-        <div class="flex items-start gap-2">
-          <i data-lucide="info" class="text-white/40 mt-0.5 flex-shrink-0 w-3.5 h-3.5"></i>
-          <p class="text-[10px] leading-relaxed text-white/40">
-            <strong class="text-white/60">Eleições 2022:</strong> Sistema interativo com mapeamento e distribuição dos 141 municípios do Estado. Sincronizado na Nuvem.
-          </p>
-        </div>
-      </div>
+      <div class="flex-1 relative w-full"><canvas id="regionChart"></canvas></div>
     </div>
 
-    <div class="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-xl flex items-center justify-between">
-      <div>
-        <p class="text-[10px] text-white/50 uppercase tracking-wider mb-1">Maior Colégio Eleitoral</p>
-        <p class="text-xl font-bold text-emerald-400" id="topCityName">Tangará da Serra</p>
-        <p class="text-xs text-white/50 mt-1" id="topCityVotes">6.302 votos</p>
-      </div>
+    <div class="bg-white/5 border border-white/10 rounded-3xl p-5">
+      <p class="text-[9px] text-white/50 uppercase tracking-wider mb-1">Maior Colégio Eleitoral</p>
+      <p class="text-lg font-bold text-emerald-400" id="topCityName">Tangará da Serra</p>
+      <p class="text-xs text-white/50 mt-1" id="topCityVotes">6.302 votos</p>
     </div>
   </div>
 
-  <div id="cityInfoModal" class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity duration-300">
-      <div class="bg-[#0d1410] border border-emerald-500/30 p-8 rounded-3xl shadow-2xl w-[400px] max-w-[90%] relative transform scale-95 transition-transform duration-300" id="cityInfoContent">
-          <button onclick="closeCityModal()" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
-          
-          <div class="flex items-center gap-4 mb-6">
-              <div class="p-3 bg-emerald-500/20 rounded-2xl text-emerald-400 border border-emerald-500/30">
-                  <i data-lucide="map-pin" class="w-6 h-6"></i>
-              </div>
+  <div id="cityInfoModal" class="hidden fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center opacity-0 transition-opacity p-4">
+      <div class="bg-[#0d1410] border border-emerald-500/30 p-6 rounded-3xl shadow-2xl w-full max-w-[360px] relative transform scale-95 transition-transform" id="cityInfoContent">
+          <button onclick="closeCityModal()" class="absolute top-4 right-4 text-white/50 hover:text-white bg-white/5 rounded-full p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+          <div class="flex items-center gap-3 mb-6">
+              <div class="p-2.5 bg-emerald-500/20 rounded-xl text-emerald-400 border border-emerald-500/30"><i data-lucide="map-pin" class="w-5 h-5"></i></div>
               <div>
-                  <h2 id="modalCityName" class="text-2xl font-bold text-white leading-tight">Nome da Cidade</h2>
-                  <p id="modalCityRegion" class="text-xs text-emerald-400/80 font-semibold uppercase tracking-wider mt-1">Região</p>
+                  <h2 id="modalCityName" class="text-xl font-bold text-white">Nome</h2>
+                  <p id="modalCityRegion" class="text-[10px] text-emerald-400/80 font-semibold uppercase mt-0.5">Região</p>
               </div>
           </div>
-
-          <div class="grid grid-cols-2 gap-4 mb-6">
-              <div class="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col justify-center">
-                  <p class="text-[10px] text-white/50 uppercase tracking-wider mb-1 flex items-center gap-1.5"><i data-lucide="users" class="w-3 h-3"></i> População</p>
-                  <p id="modalCityPop" class="text-lg font-bold text-white">0</p>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+              <div class="bg-black/40 border border-white/5 rounded-2xl p-3">
+                  <p class="text-[9px] text-white/50 uppercase mb-1">População</p>
+                  <p id="modalCityPop" class="text-base font-bold text-white">0</p>
               </div>
-              <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-4 flex flex-col justify-center">
-                  <p class="text-[10px] text-emerald-200/50 uppercase tracking-wider mb-1 flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3 h-3"></i> Votos Recebidos</p>
-                  <p id="modalCityVotes" class="text-2xl font-bold text-emerald-400">0</p>
+              <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-3">
+                  <p class="text-[9px] text-emerald-200/50 uppercase mb-1">Votos</p>
+                  <p id="modalCityVotes" class="text-xl font-bold text-emerald-400">0</p>
               </div>
           </div>
-
-          <div class="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-              <span class="text-xs font-medium text-white/60">Estimativa de Adesão</span>
-              <span id="modalCityTurnout" class="font-bold text-emerald-300 bg-emerald-500/20 px-3 py-1 rounded-lg text-sm">0%</span>
+          <div class="bg-white/5 border border-white/5 rounded-2xl p-3 flex items-center justify-between">
+              <span class="text-[10px] font-medium text-white/60">Adesão (Est.)</span>
+              <span id="modalCityTurnout" class="font-bold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded text-xs">0%</span>
           </div>
       </div>
   </div>
 
-  <div id="loginModal" class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center">
-      <div class="bg-[#0d1410] border border-emerald-500/30 p-8 rounded-3xl shadow-2xl w-96 max-w-[90%] relative">
-          <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="absolute top-4 right-4 text-white/50 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-          <h2 class="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2"><i data-lucide="lock" class="w-5 h-5"></i> Acesso Restrito</h2>
-          <p class="text-xs text-white/50 mb-6">Insira a password para gerir os dados dos municípios.</p>
-          <input type="password" id="adminPassword" placeholder="Senha do Administrador" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-3 text-white mb-4 focus:outline-none focus:border-emerald-500">
-          <button onclick="attemptLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-colors">Entrar</button>
+  <div id="loginModal" class="hidden fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-[#0d1410] border border-emerald-500/30 p-6 rounded-3xl w-full max-w-[320px] relative">
+          <button onclick="document.getElementById('loginModal').classList.add('hidden')" class="absolute top-4 right-4 text-white/50"><i data-lucide="x" class="w-4 h-4"></i></button>
+          <h2 class="text-lg font-bold text-emerald-400 mb-2 flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4"></i> Admin</h2>
+          <input type="password" id="adminPassword" placeholder="Senha" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-3 text-sm text-white mb-4 mt-4 focus:outline-none focus:border-emerald-500">
+          <button onclick="attemptLogin()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm">Entrar</button>
       </div>
   </div>
 
-  <div id="adminModal" class="hidden fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center">
-      <div class="bg-[#0d1410] border border-emerald-500/30 p-8 rounded-3xl shadow-2xl w-[500px] max-w-[90%] max-h-[90vh] overflow-y-auto relative custom-scrollbar">
-          <button onclick="document.getElementById('adminModal').classList.add('hidden')" class="absolute top-4 right-4 text-white/50 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-          <h2 class="text-xl font-bold text-emerald-400 mb-6 flex items-center gap-2"><i data-lucide="settings" class="w-5 h-5"></i> Gerir Dados do Sistema</h2>
+  <div id="adminModal" class="hidden fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-[#0d1410] border border-emerald-500/30 p-6 rounded-3xl w-full max-w-[400px] max-h-[90vh] overflow-y-auto custom-scrollbar relative">
+          <button onclick="document.getElementById('adminModal').classList.add('hidden')" class="absolute top-4 right-4 text-white/50"><i data-lucide="x" class="w-4 h-4"></i></button>
+          <h2 class="text-lg font-bold text-emerald-400 mb-4 flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> Configuração</h2>
           
-          <label class="block text-xs font-semibold text-white/50 uppercase mb-2">Selecione o Município (141)</label>
-          <select id="adminCitySelect" onchange="updateAdminInput()" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-3 text-white mb-4 focus:outline-none focus:border-emerald-500 custom-scrollbar">
-              </select>
+          <label class="block text-[10px] font-semibold text-white/50 uppercase mb-1.5">Município</label>
+          <select id="adminCitySelect" onchange="updateAdminInput()" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-2.5 text-sm text-white mb-3 focus:border-emerald-500"></select>
 
-          <label class="block text-xs font-semibold text-white/50 uppercase mb-2">Quantidade de Votos</label>
-          <input type="number" id="adminVotesInput" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-3 text-white mb-4 focus:outline-none focus:border-emerald-500">
-
-          <label class="block text-xs font-semibold text-white/50 uppercase mb-2">Número de Habitantes</label>
-          <input type="number" id="adminPopInput" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-3 text-white mb-4 focus:outline-none focus:border-emerald-500">
-          
-          <label class="block text-xs font-semibold text-white/50 uppercase mb-2 mt-4">Cor Principal do Tema</label>
-          <div class="flex items-center gap-4 mb-4">
-              <input type="color" id="adminThemeColor" class="w-14 h-10 bg-transparent border-0 rounded cursor-pointer p-0">
-              <span class="text-xs text-white/50 leading-tight">Escolha a cor Néon do sistema.</span>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div>
+              <label class="block text-[10px] font-semibold text-white/50 uppercase mb-1.5">Votos</label>
+              <input type="number" id="adminVotesInput" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-2.5 text-sm text-white">
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-white/50 uppercase mb-1.5">Habitantes</label>
+              <input type="number" id="adminPopInput" class="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-2.5 text-sm text-white">
+            </div>
           </div>
+          
+          <label class="block text-[10px] font-semibold text-white/50 uppercase mb-1.5">Cor Tema</label>
+          <input type="color" id="adminThemeColor" class="w-full h-10 bg-transparent border-0 rounded cursor-pointer mb-4">
 
-          <button id="saveAdminBtn" onclick="saveAdminVotes()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 mb-6">
-              <i data-lucide="save" class="w-5 h-5"></i> Guardar Alterações
+          <button id="saveAdminBtn" onclick="saveAdminVotes()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm mb-4 flex items-center justify-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i> Guardar
           </button>
 
-          <div class="pt-6 border-t border-emerald-500/20">
-              <label class="block text-xs font-semibold text-white/50 uppercase mb-2 flex items-center gap-1.5"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Atualizar População via Arquivo</label>
-              <div class="bg-black/20 border border-emerald-500/20 rounded-xl p-4">
-                  <p class="text-[10px] text-white/40 mb-3">O sistema buscará as 141 cidades no arquivo (.pdf, .xlsx, .csv) e atualizará os habitantes localmente.</p>
-                  <input type="file" id="fileUpload" accept=".xlsx, .xls, .csv, .pdf" class="w-full text-xs text-white/50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-500/20 file:text-emerald-400 hover:file:bg-emerald-500/30 transition-all cursor-pointer mb-3">
-                  <button onclick="processFileUpload()" class="w-full bg-emerald-600/30 hover:bg-emerald-500/50 border border-emerald-500/50 text-white text-xs font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-                      <i data-lucide="upload-cloud" class="w-4 h-4"></i> Extrair e Atualizar Habitantes
-                  </button>
-                  <p id="uploadStatus" class="text-[10px] text-emerald-400 mt-2 text-center font-bold hidden"></p>
-              </div>
+          <div class="pt-4 border-t border-emerald-500/20">
+              <label class="block text-[10px] font-semibold text-emerald-400 uppercase mb-2">Atualizar via Excel/PDF</label>
+              <input type="file" id="fileUpload" accept=".xlsx, .xls, .csv, .pdf" class="w-full text-xs text-white/50 mb-2">
+              <button onclick="processFileUpload()" class="w-full bg-white/5 border border-white/10 text-white text-xs font-bold py-2 rounded-lg flex justify-center gap-2">
+                  <i data-lucide="upload-cloud" class="w-4 h-4"></i> Extrair Habitantes
+              </button>
+              <p id="uploadStatus" class="text-[10px] text-emerald-400 mt-2 text-center hidden"></p>
           </div>
       </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
+    // --- 🚀 CONFIGURAÇÃO PWA (Progressive Web App) ---
+    function setupPWA() {
+        // 1. Injeta o Manifest Dinamicamente
+        const manifest = {
+            "name": "Painel Chico Guarnieri",
+            "short_name": "Painel 2022",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#0a110d",
+            "theme_color": "#10b981",
+            "icons": [{
+                "src": "https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png",
+                "sizes": "192x192",
+                "type": "image/png"
+            }]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
+
+        // 2. Regista o Service Worker para cache (Trabalha Offline/Instalação)
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', (e) => self.skipWaiting());
+                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                });
+            `;
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(err => console.log('SW Registration failed:', err));
+        }
+
+        // Corrige a altura em browsers mobile (Chrome/Safari ignoram a barra de endereço no 100vh)
+        const setVh = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight}px`);
+        window.addEventListener('resize', setVh);
+        setVh();
+    }
+    setupPWA();
+
     // Inicializa os ícones Lucide
     lucide.createIcons();
 
     // =========================================================================
-    // 🔗 COLOQUE AQUI A SUA URL GERADA NO GOOGLE APPS SCRIPT
+    // 🔗 SUA URL GOOGLE APPS SCRIPT
     // =========================================================================
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdZ-ge-EtBZkYTR6nDRvEU53O_25TjSSxfmWq4a4rOHs9QNhqlvqHvDTlkQmTRTZ6E/exec';
-
-    // Utilitário para formatar números
     const formatNumber = (num) => new Intl.NumberFormat('pt-BR').format(num);
 
-    // --- FUNÇÕES DE COR E TEMA DINÂMICO ---
+    // --- SISTEMA DE CORES ---
     function hexToRgb(hex) {
         let r = 0, g = 0, b = 0;
-        if (hex.length === 4) {
-            r = parseInt(hex[1] + hex[1], 16); g = parseInt(hex[2] + hex[2], 16); b = parseInt(hex[3] + hex[3], 16);
-        } else if (hex.length === 7) {
-            r = parseInt(hex.substring(1, 3), 16); g = parseInt(hex.substring(3, 5), 16); b = parseInt(hex.substring(5, 7), 16);
-        }
+        if (hex.length === 4) { r = parseInt(hex[1]+hex[1], 16); g = parseInt(hex[2]+hex[2], 16); b = parseInt(hex[3]+hex[3], 16); } 
+        else if (hex.length === 7) { r = parseInt(hex.substring(1,3), 16); g = parseInt(hex.substring(3,5), 16); b = parseInt(hex.substring(5,7), 16); }
         return `${r}, ${g}, ${b}`;
     }
 
     function applyTheme(hex) {
         const rgb = hexToRgb(hex);
-        window.globalHex = hex;
-        window.globalRgb = rgb;
+        window.globalHex = hex; window.globalRgb = rgb;
         localStorage.setItem('themeColor', hex);
 
-        // Injeta e sobrescreve as classes padrões do Tailwind com a cor escolhida
         let styleEl = document.getElementById('dynamic-theme');
-        if (!styleEl) {
-            styleEl = document.createElement('style');
-            styleEl.id = 'dynamic-theme';
-            document.head.appendChild(styleEl);
-        }
+        if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'dynamic-theme'; document.head.appendChild(styleEl); }
 
         styleEl.innerHTML = `
-            .text-emerald-400, .text-emerald-300, .text-emerald-200 { color: ${hex} !important; }
-            .text-emerald-200\\/70, .text-emerald-300\\/70 { color: rgba(${rgb}, 0.7) !important; }
-            .text-emerald-100\\/50, .text-emerald-200\\/50, .text-emerald-500\\/50 { color: rgba(${rgb}, 0.5) !important; }
+            .text-emerald-400 { color: ${hex} !important; }
             .bg-emerald-500, .bg-emerald-600 { background-color: ${hex} !important; }
-            .bg-emerald-500\\/10 { background-color: rgba(${rgb}, 0.1) !important; }
-            .bg-emerald-500\\/20, .bg-emerald-900\\/20 { background-color: rgba(${rgb}, 0.2) !important; }
-            .bg-emerald-500\\/30, .bg-emerald-900\\/30 { background-color: rgba(${rgb}, 0.3) !important; }
-            .bg-emerald-500\\/40 { background-color: rgba(${rgb}, 0.4) !important; }
-            .border-emerald-500\\/20 { border-color: rgba(${rgb}, 0.2) !important; }
+            .border-emerald-500, .border-emerald-400 { border-color: ${hex} !important; }
+            .bg-emerald-500\\/20 { background-color: rgba(${rgb}, 0.2) !important; }
             .border-emerald-500\\/30 { border-color: rgba(${rgb}, 0.3) !important; }
-            .border-emerald-400\\/80 { border-color: rgba(${rgb}, 0.8) !important; }
-            .border-emerald-400, .border-emerald-500 { border-color: ${hex} !important; }
-            .from-emerald-600 { --tw-gradient-from: ${hex} !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
-            .from-emerald-900\\/30 { --tw-gradient-from: rgba(${rgb}, 0.3) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
-            .to-emerald-400 { --tw-gradient-to: ${hex} !important; }
-            .selection\\:bg-emerald-500\\/30 *::selection { background-color: rgba(${rgb}, 0.3) !important; }
-            .hover\\:bg-emerald-500:hover { background-color: ${hex} !important; }
-            
-            .city-item-active { background-color: rgba(${rgb}, 0.1) !important; border-color: rgba(${rgb}, 0.3) !important; box-shadow: 0 0 20px rgba(${rgb}, 0.15) !important; }
+            .city-item-active { background-color: rgba(${rgb}, 0.15) !important; border-color: rgba(${rgb}, 0.4) !important; }
             .city-item-active h3 { color: ${hex} !important; }
-            #profilePic { box-shadow: 0 0 15px rgba(${rgb}, 0.3) !important; }
         `;
 
         REGION_DATA.forEach(d => d.color = hex);
         if (regionChartInstance) {
             regionChartInstance.data.datasets[0].backgroundColor = hex;
-            if(regionChartInstance.options.plugins.tooltip) {
-                regionChartInstance.options.plugins.tooltip.bodyColor = hex;
-            }
             regionChartInstance.update();
         }
 
-        window.defaultStyle = { color: `rgba(${rgb}, 0.6)`, weight: 1.5, fillColor: '#0a110d', fillOpacity: 0.1 };
-        window.highlightStyle = { color: `rgba(${rgb}, 0.8)`, weight: 2.5, fillColor: `rgba(${rgb}, 0.15)`, fillOpacity: 1 };
+        window.defaultStyle = { color: `rgba(${rgb}, 0.5)`, weight: 1.5, fillColor: '#0a110d', fillOpacity: 0.1 };
+        window.highlightStyle = { color: `rgba(${rgb}, 0.8)`, weight: 2.5, fillColor: `rgba(${rgb}, 0.2)`, fillOpacity: 1 };
         
-        if (window.geojsonLayer) {
-            window.geojsonLayer.setStyle(window.defaultStyle);
-        }
-        
+        if (window.geojsonLayer) window.geojsonLayer.setStyle(window.defaultStyle);
         if (typeof refreshMarkers === 'function') refreshMarkers();
     }
 
-    // --- DADOS INICIAIS BASE (14 CONHECIDOS DO PDF + População Real) ---
+    // --- DADOS ---
     const KNOWN_CITIES = [
       { name: 'Tangará da Serra', lat: -14.6189, lng: -57.4846, region: 'Região Oeste', initialVotes: 6302, population: 106434 },
       { name: 'Cuiabá', lat: -15.6014, lng: -56.0979, region: 'Outras Regiões', initialVotes: 613, population: 650912 },
@@ -368,655 +303,203 @@
       { name: 'Querência', lat: -12.6053, lng: -52.2206, region: 'Outras Regiões', initialVotes: 7, population: 18360 },
       { name: 'Paranatinga', lat: -14.4303, lng: -54.0583, region: 'Outras Regiões', initialVotes: 3, population: 23337 },
       { name: 'Apiacás', lat: -9.4444, lng: -57.4086, region: 'Outras Regiões', initialVotes: 1, population: 10567 },
-      { name: 'Água Boa', lat: -14.0503, lng: -52.1600, region: 'Outras Regiões', initialVotes: 0, population: 26861 },
+      { name: 'Água Boa', lat: -14.0503, lng: -52.1600, region: 'Outras Regiões', initialVotes: 0, population: 26861 }
     ];
 
-    // --- OS OUTROS 127 MUNICÍPIOS DE MATO GROSSO (Completando 141) ---
     const EXTRA_CITIES_STR = "Acorizal|-15.19|-56.36,Alto Araguaia|-17.31|-53.21,Alto Boa Vista|-11.67|-50.26,Alto Garças|-16.94|-53.52,Alto Paraguai|-14.50|-56.48,Alto Taquari|-17.82|-53.28,Araguaiana|-14.73|-51.84,Araguainha|-16.84|-53.03,Araputanga|-15.46|-58.30,Arenápolis|-14.45|-56.84,Aripuanã|-10.16|-59.45,Barão de Melgaço|-16.19|-55.96,Barra do Bugres|-15.07|-57.18,Barra do Garças|-15.89|-52.25,Bom Jesus do Araguaia|-12.12|-51.54,Campinápolis|-14.30|-53.06,Campo Novo do Parecis|-13.67|-57.88,Campo Verde|-15.54|-55.16,Campos de Júlio|-13.89|-59.14,Canabrava do Norte|-10.87|-51.52,Canarana|-13.55|-52.26,Carlinda|-9.96|-55.82,Castanheira|-11.13|-58.60,Chapada dos Guimarães|-15.45|-55.74,Cláudia|-11.49|-54.88,Cocalinho|-14.39|-50.99,Colíder|-10.80|-55.45,Comodoro|-13.66|-59.78,Confresa|-10.64|-51.56,Conquista D'Oeste|-15.05|-59.04,Cotriguaçu|-9.85|-58.48,Curvelândia|-15.60|-58.01,Denise|-14.73|-57.05,Diamantino|-14.40|-56.44,Dom Aquino|-15.80|-54.91,Feliz Natal|-12.38|-54.91,Figueirópolis D'Oeste|-15.44|-58.74,Gaúcha do Norte|-13.18|-53.08,General Carneiro|-15.71|-52.94,Glória D'Oeste|-15.73|-58.38,Guarantã do Norte|-9.78|-54.90,Guiratinga|-16.34|-53.75,Indiavaí|-15.29|-58.58,Ipiranga do Norte|-12.23|-56.17,Itanhangá|-12.22|-56.63,Itaúba|-11.02|-55.30,Itiquira|-17.20|-54.14,Jaciara|-15.96|-54.96,Jangada|-15.24|-56.48,Jauru|-15.34|-58.86,Juara|-11.25|-57.51,Juruena|-10.31|-58.48,Juscimeira|-16.05|-54.88,Lambari D'Oeste|-15.27|-58.01,Lucas do Rio Verde|-13.04|-55.91,Luciara|-11.19|-50.67,Marcelândia|-11.09|-54.43,Matupá|-10.04|-54.92,Mirassol d'Oeste|-15.67|-58.01,Nobres|-14.72|-56.32,Nortelândia|-14.45|-56.80,Nossa Senhora do Livramento|-15.77|-56.34,Nova Bandeirantes|-9.81|-57.65,Nova Brasilândia|-14.96|-54.97,Nova Canaã do Norte|-10.42|-55.65,Nova Guarita|-10.19|-55.27,Nova Lacerda|-14.46|-59.33,Nova Marilândia|-14.36|-57.06,Nova Maringá|-13.02|-57.08,Nova Monte Verde|-9.81|-57.53,Nova Mutum|-13.82|-56.08,Nova Nazaré|-13.78|-51.99,Nova Olímpia|-14.79|-57.28,Nova Santa Helena|-10.85|-55.21,Nova Ubiratã|-13.04|-55.25,Nova Xavantina|-14.66|-52.34,Novo Horizonte do Norte|-11.38|-57.34,Novo Mundo|-9.94|-55.21,Novo Santo Antônio|-12.28|-50.93,Novo São Joaquim|-14.90|-53.01,Paranaíta|-9.66|-56.47,Pedra Preta|-16.62|-54.47,Peixoto de Azevedo|-10.22|-54.97,Planalto da Serra|-14.30|-54.88,Pontal do Araguaia|-15.82|-52.26,Ponte Branca|-16.74|-53.07,Pontes e Lacerda|-15.22|-59.33,Porto Alegre do Norte|-10.58|-51.62,Porto dos Gaúchos|-11.53|-57.41,Porto Esperidião|-15.85|-58.46,Porto Estrela|-15.32|-57.22,Poxoréu|-15.83|-54.38,Primavera do Leste|-15.55|-54.29,Reserva do Cabaçal|-15.03|-58.39,Ribeirão Cascalheira|-12.91|-51.82,Ribeirãozinho|-16.48|-52.68,Rio Branco|-15.24|-58.11,Rondolândia|-9.80|-61.12,Rondonópolis|-16.46|-54.63,Rosário Oeste|-14.83|-56.42,Salto do Céu|-15.13|-58.13,Santa Carmem|-11.95|-55.26,Santa Cruz do Xingu|-9.73|-52.31,Santa Rita do Trivelato|-13.80|-55.21,Santa Terezinha|-10.47|-50.51,Santo Afonso|-14.39|-57.11,Santo Antônio do Leste|-14.81|-53.60,Santo Antônio do Leverger|-15.86|-56.07,São Félix do Araguaia|-11.61|-50.66,São José do Povo|-16.46|-54.25,São José do Rio Claro|-13.44|-56.72,São José dos Quatro Marcos|-15.62|-58.28,São Pedro da Cipa|-16.02|-54.90,Sapezal|-13.54|-58.81,Serra Nova Dourada|-12.87|-51.38,Sinop|-11.85|-55.50,Sorriso|-12.54|-55.72,Tabaporã|-11.29|-56.84,Tapurah|-12.82|-56.55,Terra Nova do Norte|-10.49|-55.23,Tesouro|-16.03|-53.51,Torixoréu|-16.20|-52.54,União do Sul|-11.53|-54.35,Vale de São Domingos|-15.12|-58.96,Vera|-12.30|-55.31,Vila Bela da Santíssima Trindade|-15.00|-59.95,Vila Rica|-10.01|-51.11";
 
-    const EXTRA_CITIES = EXTRA_CITIES_STR.split(',').map((item, index) => {
+    let CITIES_DATA = [...KNOWN_CITIES, ...EXTRA_CITIES_STR.split(',').map((item, index) => {
         const [name, lat, lng] = item.split('|');
-        const estPop = Math.floor(Math.random() * 30000) + 5000;
-        return { name, lat: parseFloat(lat), lng: parseFloat(lng), region: 'Outras Regiões', initialVotes: 0, population: estPop };
-    });
-
-    let CITIES_DATA = [...KNOWN_CITIES, ...EXTRA_CITIES]
-      .filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i)
-      .map((city, index) => {
+        return { name, lat: parseFloat(lat), lng: parseFloat(lng), region: 'Outras Regiões', initialVotes: 0, population: Math.floor(Math.random() * 30000) + 5000 };
+    })].filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i).map((city, index) => {
         let votes = city.initialVotes;
-        return {
-          ...city,
-          id: index + 1,
-          votes: votes,
-          turnout: votes > 0 ? ((votes / (city.population * 0.7)) * 100).toFixed(2) : '0.00'
-        }
-      }).sort((a, b) => b.votes - a.votes);
+        return { ...city, id: index + 1, votes: votes, turnout: votes > 0 ? ((votes / (city.population * 0.7)) * 100).toFixed(2) : '0.00' }
+    }).sort((a, b) => b.votes - a.votes);
 
-    // Variáveis Globais de Estado
+    // Variáveis Globais
     let currentSelectedCityId = null;
-    let currentHoverSource = null; 
-    let map;
+    let map, regionChartInstance;
     let leafletMarkers = new Map();
-    let regionChartInstance;
     let REGION_DATA = [
-      { name: 'Região Oeste', votes: 0, color: '#10b981' }, 
-      { name: 'Vale do R. Cuiabá', votes: 0, color: '#34d399' }, 
-      { name: 'Médio Norte', votes: 0, color: '#6ee7b7' }, 
-      { name: 'Região Norte', votes: 0, color: '#a7f3d0' }, 
-      { name: 'Outras Regiões', votes: 0, color: '#047857' }
+      { name: 'Região Oeste', votes: 0, color: '#10b981' }, { name: 'Vale do R. Cuiabá', votes: 0, color: '#34d399' }, 
+      { name: 'Médio Norte', votes: 0, color: '#6ee7b7' }, { name: 'Região Norte', votes: 0, color: '#a7f3d0' }, { name: 'Outras Regiões', votes: 0, color: '#047857' }
     ];
 
-    // --- CARREGAMENTO DE DADOS ONLINE (Google Sheets) ---
+    // --- CARREGAR DB ---
     async function loadDataFromSheets() {
-        if (SCRIPT_URL === 'COLE_AQUI_SUA_URL_DO_APP_WEB') return;
+        if (SCRIPT_URL.includes('COLE_AQUI')) return;
         try {
-            const response = await fetch(SCRIPT_URL);
-            const data = await response.json();
-            
+            const res = await fetch(SCRIPT_URL); const data = await res.json();
             if (data && data.length > 0) {
                 let hasChanges = false;
                 data.forEach(remoteCity => {
-                    // Carrega a configuração da cor
-                    if (remoteCity.name === "_CONFIG_THEME_") {
-                        if (remoteCity.region && remoteCity.region.startsWith('#')) {
-                            applyTheme(remoteCity.region);
-                            document.getElementById('adminThemeColor').value = remoteCity.region;
-                        }
+                    if (remoteCity.name === "_CONFIG_THEME_" && remoteCity.region) {
+                        applyTheme(remoteCity.region); document.getElementById('adminThemeColor').value = remoteCity.region;
                     } else {
                         const localCity = CITIES_DATA.find(c => c.name === remoteCity.name);
                         if (localCity) {
-                            localCity.votes = parseInt(remoteCity.votes) || 0;
-                            localCity.population = parseInt(remoteCity.population) || localCity.population;
+                            localCity.votes = parseInt(remoteCity.votes) || 0; localCity.population = parseInt(remoteCity.population) || localCity.population;
                             localCity.turnout = localCity.votes > 0 ? ((localCity.votes / (localCity.population * 0.7)) * 100).toFixed(2) : '0.00';
                             hasChanges = true;
                         }
                     }
                 });
-                
                 if (hasChanges) {
                     CITIES_DATA.sort((a, b) => b.votes - a.votes);
-                    updateChartAndSummary();
-                    renderCities(document.getElementById('searchInput').value);
-                    refreshMarkers();
+                    updateChartAndSummary(); renderCities(document.getElementById('searchInput').value); refreshMarkers();
                 }
             }
-        } catch (e) {
-            console.error("Não foi possível sincronizar com o banco de dados online:", e);
-        }
+        } catch (e) { console.error("Falha DB:", e); }
     }
 
-    // --- LÓGICA DE UPLOAD DE ARQUIVOS (EXTRAIR POPULAÇÃO) ---
-    async function processFileUpload() {
-        const fileInput = document.getElementById('fileUpload');
-        const status = document.getElementById('uploadStatus');
+    // --- MAPA LEAFLET RESILIENTE ---
+    function initMap() {
+        const mapContainer = document.getElementById('map');
         
-        if (!fileInput.files.length) {
-            alert("Por favor, selecione um arquivo primeiro.");
-            return;
-        }
+        map = L.map(mapContainer, {
+            zoomControl: false, attributionControl: false, fadeAnimation: false,
+            maxBounds: L.latLngBounds(L.latLng(-18.5, -62.0), L.latLng(-7.0, -49.5)), maxBoundsViscosity: 1.0, minZoom: 4, maxZoom: 10
+        }).setView([-13.0, -56.0], window.innerWidth < 768 ? 5 : 6); // Zoom dinâmico mobile/desktop
 
-        const file = fileInput.files[0];
-        status.textContent = "Processando arquivo aguarde...";
-        status.classList.remove('hidden');
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
 
-        try {
-            let updatedCitiesList = [];
-
-            // Se for EXCEL / CSV
-            if (file.name.match(/\.(xlsx|xls|csv)$/)) {
-                const arrayBuffer = await file.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-                
-                jsonData.forEach(row => {
-                    const rowValues = Object.values(row);
-                    const matchedCity = CITIES_DATA.find(city => {
-                        const cityNameNorm = city.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-                        return rowValues.some(val => 
-                            typeof val === 'string' && val.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() === cityNameNorm
-                        );
-                    });
-
-                    if (matchedCity) {
-                        const numbers = rowValues
-                            .map(val => parseInt(String(val).replace(/\./g, '')))
-                            .filter(val => !isNaN(val) && val > 0 && val !== matchedCity.id && val !== matchedCity.votes); 
-                        
-                        if (numbers.length > 0) {
-                            const pop = Math.max(...numbers);
-                            if(matchedCity.population !== pop) {
-                                matchedCity.population = pop;
-                                matchedCity.turnout = matchedCity.votes > 0 ? ((matchedCity.votes / (matchedCity.population * 0.7)) * 100).toFixed(2) : '0.00';
-                                updatedCitiesList.push(matchedCity);
-                            }
-                        }
+        fetch('https://servicodados.ibge.gov.br/api/v3/malhas/estados/51?formato=application/vnd.geo+json&resolucao=5')
+            .then(res => res.ok ? res.json() : Promise.reject())
+            .then(data => {
+                window.defaultStyle = { color: 'rgba(52, 211, 153, 0.4)', weight: 1.5, fillColor: 'transparent' };
+                window.highlightStyle = { color: 'rgba(52, 211, 153, 0.8)', weight: 2, fillColor: 'rgba(16, 185, 129, 0.1)', fillOpacity: 1 };
+                window.geojsonLayer = L.geoJSON(data, {
+                    style: window.defaultStyle,
+                    onEachFeature: (feature, layer) => {
+                        layer.on({
+                            mouseover: (e) => { e.target.setStyle(window.highlightStyle); if (!L.Browser.ie && !L.Browser.edge) e.target.bringToFront(); },
+                            mouseout: (e) => window.geojsonLayer.resetStyle(e.target)
+                        });
                     }
-                });
-            } 
-            // Se for PDF
-            else if (file.name.endsWith('.pdf')) {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                let fullText = "";
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const content = await page.getTextContent();
-                    const strings = content.items.map(item => item.str);
-                    fullText += strings.join(" ") + " ";
-                }
-                
-                const normalizedText = fullText.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-                const numberRegex = /\b\d{1,3}(?:\.\d{3})*(?:,\d+)?\b|\b\d+\b/g;
-                let match;
-                const numbers = [];
-                while ((match = numberRegex.exec(normalizedText)) !== null) {
-                    const cleanNum = parseInt(match[0].replace(/\./g, '').replace(/,/g, ''));
-                    if (!isNaN(cleanNum)) {
-                        numbers.push({ index: match.index, value: cleanNum });
-                    }
-                }
+                }).addTo(map);
+            })
+            .catch(() => console.warn("Fronteira IBGE ignorada."))
+            .finally(() => {
+                const spinner = document.getElementById('loadingSpinner');
+                if (spinner) spinner.style.display = 'none';
+                map.invalidateSize();
+            });
 
-                CITIES_DATA.forEach(city => {
-                    const cityNameNorm = city.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-                    const cityIndex = normalizedText.indexOf(cityNameNorm);
-                    if (cityIndex !== -1) {
-                        const nearbyNumber = numbers.find(n => n.index > cityIndex && n.index - cityIndex < 80);
-                        if (nearbyNumber && nearbyNumber.value > 0) {
-                            if(city.population !== nearbyNumber.value) {
-                                city.population = nearbyNumber.value;
-                                city.turnout = city.votes > 0 ? ((city.votes / (city.population * 0.7)) * 100).toFixed(2) : '0.00';
-                                updatedCitiesList.push(city);
-                            }
-                        }
-                    }
-                });
-            } else {
-                alert("Formato de arquivo não suportado.");
-                status.classList.add('hidden');
-                return;
-            }
-
-            if (updatedCitiesList.length > 0) {
-                renderCities(document.getElementById('searchInput').value);
-                updateAdminInput();
-                alert(`${updatedCitiesList.length} municípios tiveram os habitantes atualizados localmente! Preparando para guardar na nuvem.`);
-                
-                if (SCRIPT_URL !== 'COLE_AQUI_SUA_URL_DO_APP_WEB') {
-                    status.textContent = "A Sincronizar na nuvem (Isto pode demorar...)";
-                    for (const city of updatedCitiesList) {
-                        try {
-                            await fetch(SCRIPT_URL, {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    name: city.name,
-                                    votes: city.votes,
-                                    population: city.population,
-                                    region: city.region
-                                })
-                            });
-                        } catch(e) {}
-                    }
-                    alert("Atualização em massa e sincronização concluídas!");
-                }
-            } else {
-                alert("Nenhum dado de população correspondente foi encontrado no arquivo.");
-            }
-
-        } catch (error) {
-            console.error("Erro ao processar arquivo:", error);
-            alert("Erro ao ler o arquivo. Pode estar corrompido ou o formato não é lido pelo navegador.");
-        } finally {
-            status.classList.add('hidden');
-            fileInput.value = "";
-            lucide.createIcons();
-        }
-    }
-
-    // --- LÓGICA DO ADMIN ---
-    function attemptLogin() {
-        const pass = document.getElementById('adminPassword').value;
-        if(pass === 'Chico2026') {
-            document.getElementById('loginModal').classList.add('hidden');
-            document.getElementById('adminPassword').value = '';
-            openAdminDashboard();
-        } else {
-            alert('Senha incorreta! Acesso negado.');
-        }
-    }
-
-    function openAdminDashboard() {
-        document.getElementById('adminModal').classList.remove('hidden');
-        const select = document.getElementById('adminCitySelect');
-        select.innerHTML = '';
-        
-        let sortedCities = [...CITIES_DATA].sort((a,b) => a.name.localeCompare(b.name));
-        sortedCities.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.id;
-            opt.textContent = c.name;
-            select.appendChild(opt);
+        CITIES_DATA.forEach(city => {
+            const icon = L.divIcon({ className: 'custom-leaflet-marker', html: getMarkerHtml(city, false), iconSize: [0, 0] });
+            const marker = L.marker([city.lat, city.lng], { icon }).addTo(map);
+            marker.on('click', () => openCityModal(city.id));
+            leafletMarkers.set(city.id, marker);
         });
 
-        document.getElementById('adminThemeColor').value = window.globalHex || '#10b981';
-        updateAdminInput(); 
+        // O SEGREDO DO PWA: Forçar o redimensionamento do mapa constantemente para evitar blocos cinzentos
+        new ResizeObserver(() => { if (map) map.invalidateSize(); }).observe(mapContainer);
+        setTimeout(() => map.invalidateSize(), 500);
     }
 
-    function updateAdminInput() {
-        const id = document.getElementById('adminCitySelect').value;
-        const city = CITIES_DATA.find(c => c.id == id);
-        if(city) {
-            document.getElementById('adminVotesInput').value = city.votes;
-            document.getElementById('adminPopInput').value = city.population;
-        }
+    function getMarkerHtml(city, isSelected) {
+        let isZero = city.votes === 0; let size = isZero ? 6 : (city.votes > 1000 ? 30 : (city.votes > 100 ? 20 : (city.votes > 15 ? 14 : 10)));
+        const currentRgb = window.globalRgb || '16, 185, 129';
+        const pingHtml = (!isZero && isSelected) ? `<div class="absolute inset-0 bg-emerald-500/40 rounded-full animate-ping" style="padding: ${size/2}px; top: -${size/2}px; left: -${size/2}px; width: ${size*2}px; height: ${size*2}px;"></div>` : '';
+        const bgClass = isZero ? 'bg-white/10 border-white/5' : (isSelected ? 'bg-emerald-500 border-white z-[1000]' : 'bg-emerald-500/40 border-emerald-400/80 z-[50]');
+        const label = (!isSelected && city.votes > 1000) ? `<span class="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-white/80 whitespace-nowrap">${city.name}</span>` : '';
+        
+        return `<div class="relative flex items-center justify-center">
+                  ${pingHtml}
+                  <div class="absolute rounded-full border border-solid backdrop-blur-sm transition-all flex items-center justify-center ${bgClass}" 
+                       style="width: ${size}px; height: ${size}px; top: -${size/2}px; left: -${size/2}px; box-shadow: 0 0 10px rgba(${currentRgb}, ${isZero?0:0.4});">
+                  </div>${label}
+                </div>`;
     }
 
-    async function saveAdminVotes() {
-        const id = document.getElementById('adminCitySelect').value;
-        const votes = parseInt(document.getElementById('adminVotesInput').value) || 0;
-        const pop = parseInt(document.getElementById('adminPopInput').value) || 0;
-        const themeColor = document.getElementById('adminThemeColor').value;
-        
-        applyTheme(themeColor);
-        
-        const city = CITIES_DATA.find(c => c.id == id);
-        if(!city) return;
+    function refreshMarkers() {
+        CITIES_DATA.forEach(city => {
+            const m = leafletMarkers.get(city.id);
+            if (m) m.setIcon(L.divIcon({ className: 'custom-leaflet-marker', html: getMarkerHtml(city, currentSelectedCityId === city.id), iconSize: [0,0] }));
+        });
+    }
 
-        // Atualização Local Imediata
-        city.votes = votes;
-        city.population = pop > 0 ? pop : 1;
-        city.turnout = votes > 0 ? ((votes / (city.population * 0.7)) * 100).toFixed(2) : '0.00';
-        
-        CITIES_DATA.sort((a, b) => b.votes - a.votes);
-        renderCities(document.getElementById('searchInput').value);
-        updateChartAndSummary();
-        refreshMarkers();
-
-        // Guardar na Nuvem (Google Sheets)
-        if (SCRIPT_URL !== 'COLE_AQUI_SUA_URL_DO_APP_WEB') {
-            const btn = document.getElementById('saveAdminBtn');
-            const originalText = btn.innerHTML;
+    // --- RENDERIZAÇÃO E MODAIS ---
+    function renderCities(search = "") {
+        const container = document.getElementById('cityList'); container.innerHTML = '';
+        CITIES_DATA.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).forEach(city => {
+            const div = document.createElement('div');
+            div.className = "city-item cursor-pointer rounded-xl p-3 mb-1.5 transition-colors border border-transparent hover:bg-white/5";
+            div.dataset.id = city.id;
+            const fill = Math.min(100, Math.max(0, (city.votes / (CITIES_DATA[0]?.votes || 6302)) * 100));
             
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> A guardar na nuvem...';
-            btn.disabled = true;
-            lucide.createIcons();
-
-            try {
-                // Guarda os dados da cidade
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        name: city.name,
-                        votes: city.votes,
-                        population: city.population,
-                        region: city.region
-                    })
-                });
-
-                // Guarda a Cor na cidade escondida "_CONFIG_THEME_"
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        name: "_CONFIG_THEME_",
-                        votes: 0,
-                        population: 0,
-                        region: themeColor
-                    })
-                });
-
-                alert(`Dados de ${city.name} e configurações de cores atualizados!`);
-            } catch (e) {
-                console.error("Erro ao guardar online:", e);
-                alert("As alterações foram guardadas no seu dispositivo.");
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                lucide.createIcons();
-            }
-        } else {
-            alert(`Lembre-se: Insira a URL do seu App Script no código para guardar na nuvem. (Alterações aplicadas localmente).`);
-        }
+            div.innerHTML = `
+                <div class="flex justify-between items-center mb-1.5">
+                    <h3 class="font-medium text-sm ${city.votes===0?'text-white/40':'text-white/90'}">${city.name}</h3>
+                    <p class="font-bold text-base ${city.votes>0?'text-emerald-400':'text-white/20'}">${formatNumber(city.votes)}</p>
+                </div>
+                ${city.votes > 0 ? `<div class="w-full h-1 bg-black/40 rounded-full"><div class="h-full bg-emerald-500 rounded-full" style="width: ${fill}%"></div></div>` : ''}`;
+            
+            div.addEventListener('click', () => { 
+                currentSelectedCityId = city.id; refreshMarkers(); 
+                if (map) map.setView([city.lat, city.lng], 8, { animate: true });
+                openCityModal(city.id); 
+            });
+            container.appendChild(div);
+        });
     }
 
-    // --- LÓGICA DO POP-UP DA CIDADE ---
-    function openCityModal(cityId) {
-        const city = CITIES_DATA.find(c => c.id == cityId);
-        if (!city) return;
-
+    function openCityModal(id) {
+        const city = CITIES_DATA.find(c => c.id == id); if (!city) return;
         document.getElementById('modalCityName').textContent = city.name;
         document.getElementById('modalCityRegion').textContent = city.region;
         document.getElementById('modalCityPop').textContent = formatNumber(city.population);
         document.getElementById('modalCityVotes').textContent = formatNumber(city.votes);
         document.getElementById('modalCityTurnout').textContent = `${city.turnout}%`;
-
-        const modal = document.getElementById('cityInfoModal');
-        const content = document.getElementById('cityInfoContent');
-        
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            content.classList.remove('scale-95');
-        }, 10);
+        const m = document.getElementById('cityInfoModal'); m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); m.children[0].classList.remove('scale-95'); }, 10);
     }
-
     function closeCityModal() {
-        const modal = document.getElementById('cityInfoModal');
-        const content = document.getElementById('cityInfoContent');
-        
-        modal.classList.add('opacity-0');
-        content.classList.add('scale-95');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 300);
+        currentSelectedCityId = null; refreshMarkers();
+        const m = document.getElementById('cityInfoModal'); m.classList.add('opacity-0'); m.children[0].classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 200);
     }
 
-    // --- GRÁFICO & ESTATÍSTICAS ---
     function updateChartAndSummary() {
-      let dataMap = { 'Região Oeste': 0, 'Vale do R. Cuiabá': 0, 'Médio Norte': 0, 'Região Norte': 0, 'Outras Regiões': 2835 };
-      let total = 2835;
-      
-      CITIES_DATA.forEach(c => {
-        let r = c.region;
-        if (!dataMap.hasOwnProperty(r)) r = 'Outras Regiões';
-        dataMap[r] += c.votes;
-        total += c.votes;
-      });
-
-      REGION_DATA[0].votes = dataMap['Região Oeste'];
-      REGION_DATA[1].votes = dataMap['Vale do R. Cuiabá'];
-      REGION_DATA[2].votes = dataMap['Médio Norte'];
-      REGION_DATA[3].votes = dataMap['Região Norte'];
-      REGION_DATA[4].votes = dataMap['Outras Regiões'];
-
-      document.getElementById('totalVotesDisplay').textContent = formatNumber(total);
-
-      if(CITIES_DATA.length > 0) {
-        document.getElementById('topCityName').textContent = CITIES_DATA[0].name;
-        document.getElementById('topCityVotes').textContent = formatNumber(CITIES_DATA[0].votes) + ' votos';
-      }
-
-      if (regionChartInstance) {
-         regionChartInstance.data.datasets[0].data = REGION_DATA.map(d => d.votes);
-         regionChartInstance.update();
-      } else {
-         initChart();
-      }
+        let total = 0; let m = { 'Região Oeste':0, 'Vale do R. Cuiabá':0, 'Médio Norte':0, 'Região Norte':0, 'Outras Regiões':0 };
+        CITIES_DATA.forEach(c => { m[m.hasOwnProperty(c.region) ? c.region : 'Outras Regiões'] += c.votes; total += c.votes; });
+        REGION_DATA.forEach((r, i) => r.votes = Object.values(m)[i]);
+        document.getElementById('totalVotesDisplay').textContent = formatNumber(total);
+        if(CITIES_DATA.length > 0) {
+            document.getElementById('topCityName').textContent = CITIES_DATA[0].name;
+            document.getElementById('topCityVotes').textContent = formatNumber(CITIES_DATA[0].votes) + ' votos';
+        }
+        if (regionChartInstance) { regionChartInstance.data.datasets[0].data = REGION_DATA.map(d => d.votes); regionChartInstance.update(); } 
+        else { initChart(); }
     }
 
     function initChart() {
-      const ctx = document.getElementById('regionChart').getContext('2d');
-      regionChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: REGION_DATA.map(d => d.name),
-          datasets: [{
-            data: REGION_DATA.map(d => d.votes),
-            backgroundColor: REGION_DATA.map(d => window.globalHex || d.color),
-            borderRadius: 6,
-            borderSkipped: false,
-            barThickness: 28,
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 1500 },
-          scales: {
-            x: { display: false, grid: { display: false } },
-            y: { 
-              border: { display: false },
-              grid: { display: false },
-              ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 11, weight: 500 } }
-            }
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(20, 20, 20, 0.9)',
-              titleColor: '#fff',
-              bodyColor: window.globalHex || '#34d399',
-              bodyFont: { weight: 'bold', size: 14 },
-              padding: 12,
-              borderColor: 'rgba(255,255,255,0.1)',
-              borderWidth: 1,
-              displayColors: false,
-              callbacks: {
-                label: function(context) { return formatNumber(context.raw) + ' votos'; },
-                afterLabel: function() { return 'Total contabilizado'; }
-              }
-            }
-          }
-        }
-      });
-    }
-
-    // --- MARCADORES DO MAPA COM LÓGICA DE FADE OUT REFINADA ---
-    function getMarkerHtml(city, isSelected) {
-      let isZero = city.votes === 0;
-      let size = isZero ? 6 : 10;
-      if (city.votes > 1000) size = 44;
-      else if (city.votes > 100) size = 28;
-      else if (city.votes > 50) size = 20;
-      else if (city.votes > 15) size = 16;
-      else if (city.votes > 0) size = 10;
-
-      const currentRgb = window.globalRgb || '16, 185, 129';
-      const pingHtml = (!isZero && isSelected) ? `<div class="absolute inset-0 bg-emerald-500/40 rounded-full animate-ping" style="padding: ${size/2}px; top: -${size/2}px; left: -${size/2}px; width: ${size*2}px; height: ${size*2}px;"></div>` : '';
-      const centerDotHtml = city.votes > 1000 ? `<div class="w-1/3 h-1/3 bg-white rounded-full"></div>` : '';
-      const labelHtml = (!isSelected && city.votes > 1000) ? `<span class="absolute -top-7 left-1/2 -translate-x-1/2 text-xs font-bold text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] whitespace-nowrap pointer-events-none">${city.name}</span>` : '';
-      
-      const tooltipHtml = `
-        <div class="absolute top-full left-1/2 -translate-x-1/2 mt-3 flex flex-col items-center transition-all duration-300 pointer-events-none ${isSelected ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2'} z-[9999]">
-          <div class="bg-black/95 backdrop-blur-xl border border-emerald-500/40 px-4 py-2 rounded-2xl shadow-2xl whitespace-nowrap">
-            <p class="font-bold text-white text-sm">${city.name}</p>
-            <div class="mt-1">
-              <p class="text-xs ${isZero ? 'text-white/50' : 'text-emerald-400'} font-semibold">${formatNumber(city.votes)} votos</p>
-            </div>
-            <p class="text-[9px] text-white/40 mt-2 text-center uppercase tracking-widest border-t border-white/10 pt-1">Clique para Detalhes</p>
-          </div>
-        </div>
-      `;
-
-      let bgClass = isZero ? 'bg-white/20 border-white/10' : (isSelected ? 'bg-emerald-500 border-white' : 'bg-emerald-500/40 border-emerald-400/80');
-      let zIndex = isSelected ? 'z-[1000]' : (isZero ? 'z-[10]' : 'z-[50]');
-
-      // Lógica crucial: Esconde os outros pontos APENAS se o rato estiver na LISTA LATERAL
-      const anySelectedFromList = currentSelectedCityId !== null && currentHoverSource === 'list';
-      const isHidden = anySelectedFromList && !isSelected;
-      const visibilityStyle = isHidden ? 'opacity: 0; pointer-events: none;' : 'opacity: 1; pointer-events: auto;';
-
-      return `
-        <div class="relative flex items-center justify-center" style="width: 0; height: 0; transition: opacity 0.3s ease; ${visibilityStyle}">
-          ${pingHtml}
-          <div class="absolute rounded-full border border-solid backdrop-blur-md transition-all duration-300 flex items-center justify-center ${bgClass} ${zIndex}" 
-               style="width: ${size}px; height: ${size}px; top: -${size/2}px; left: -${size/2}px; transform: scale(${isSelected && !isZero ? 1.2 : 1}); box-shadow: 0 0 15px rgba(${currentRgb}, ${isZero ? '0.1' : '0.4'});">
-            ${centerDotHtml}
-          </div>
-          ${tooltipHtml}
-          ${labelHtml}
-        </div>
-      `;
-    }
-
-    function refreshMarkers() {
-        CITIES_DATA.forEach(city => {
-            const marker = leafletMarkers.get(city.id);
-            if (marker) {
-                marker.setIcon(L.divIcon({
-                    className: `custom-leaflet-marker ${currentSelectedCityId === city.id ? 'z-[1000]' : ''}`,
-                    html: getMarkerHtml(city, currentSelectedCityId === city.id),
-                    iconSize: [0, 0]
-                }));
-            }
+        const ctx = document.getElementById('regionChart'); if(!ctx) return;
+        regionChartInstance = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: { labels: REGION_DATA.map(d=>d.name), datasets: [{ data: REGION_DATA.map(d=>d.votes), backgroundColor: window.globalHex || '#10b981', borderRadius: 4 }] },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} }, scales: { x: {display:false}, y:{ border:{display:false}, grid:{display:false}, ticks:{color:'rgba(255,255,255,0.6)', font:{size:10}} } } }
         });
     }
 
-    // Atualizado para receber a origem da ação ('list' ou 'map')
-    function updateSelection(cityId, source = null) {
-      currentSelectedCityId = cityId;
-      currentHoverSource = source;
-      
-      const cityElements = document.querySelectorAll('.city-item');
-      cityElements.forEach(el => {
-        const h3 = el.querySelector('h3');
-        if (el.dataset.id == cityId) {
-          el.classList.add('city-item-active');
-          el.classList.replace('bg-transparent', 'bg-emerald-500/10');
-          el.classList.replace('border-transparent', 'border-emerald-500/30');
-          h3.classList.replace('text-white/90', 'text-emerald-400');
-        } else {
-          el.classList.remove('city-item-active');
-          el.classList.replace('bg-emerald-500/10', 'bg-transparent');
-          el.classList.replace('border-emerald-500/30', 'border-transparent');
-          h3.classList.replace('text-emerald-400', 'text-white/90');
+    // --- ADMIN (Simples) ---
+    function attemptLogin() { if(document.getElementById('adminPassword').value === 'Chico2026') { document.getElementById('loginModal').classList.add('hidden'); document.getElementById('adminModal').classList.remove('hidden'); const s = document.getElementById('adminCitySelect'); s.innerHTML=''; [...CITIES_DATA].sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => s.appendChild(new Option(c.name, c.id))); updateAdminInput(); } else alert('Senha incorreta!'); }
+    function updateAdminInput() { const c = CITIES_DATA.find(c => c.id == document.getElementById('adminCitySelect').value); if(c) { document.getElementById('adminVotesInput').value = c.votes; document.getElementById('adminPopInput').value = c.population; } }
+    async function saveAdminVotes() {
+        const c = CITIES_DATA.find(c => c.id == document.getElementById('adminCitySelect').value);
+        if(c) {
+            c.votes = parseInt(document.getElementById('adminVotesInput').value)||0; c.population = parseInt(document.getElementById('adminPopInput').value)||1;
+            c.turnout = c.votes > 0 ? ((c.votes / (c.population * 0.7)) * 100).toFixed(2) : '0.00';
+            applyTheme(document.getElementById('adminThemeColor').value); CITIES_DATA.sort((a,b)=>b.votes-a.votes); renderCities(); updateChartAndSummary(); refreshMarkers();
+            alert("Salvo localmente! Configurar URL Script para nuvem.");
         }
-      });
-      refreshMarkers();
     }
 
-    // --- LISTA DE CIDADES (ESQUERDA) ---
-    function renderCities(searchTerm = "") {
-      const container = document.getElementById('cityList');
-      container.innerHTML = '';
-      
-      const filtered = CITIES_DATA.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      filtered.forEach(city => {
-        const div = document.createElement('div');
-        div.className = "city-item group cursor-pointer rounded-2xl p-4 transition-all duration-300 ease-out border bg-transparent border-transparent hover:bg-white/5";
-        div.dataset.id = city.id;
-
-        const maxVotes = CITIES_DATA[0]?.votes || 6302;
-        const fillPercentage = Math.min(100, Math.max(0, (city.votes / maxVotes) * 100));
-        
-        div.innerHTML = `
-          <div class="flex justify-between items-center mb-2">
-            <h3 class="font-semibold text-base transition-colors ${city.votes === 0 ? 'text-white/50 group-hover:text-white/80' : 'text-white/90 group-hover:text-white'}">${city.name}</h3>
-            <div class="text-right">
-              <p class="font-bold text-lg ${city.votes > 0 ? 'text-white' : 'text-white/20'}">${formatNumber(city.votes)}</p>
-            </div>
-          </div>
-          ${city.votes > 0 ? `
-            <div class="w-full h-1 bg-black/40 rounded-full overflow-hidden mt-2">
-              <div class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000 ease-out" style="width: ${fillPercentage}%"></div>
-            </div>
-          ` : ''}
-        `;
-
-        // Passa a flag 'list' informando que o rato está na lista lateral
-        div.addEventListener('mouseenter', () => updateSelection(city.id, 'list'));
-        div.addEventListener('mouseleave', () => updateSelection(null, null));
-        div.addEventListener('click', () => openCityModal(city.id));
-        
-        container.appendChild(div);
-      });
-    }
-
-    // --- INICIALIZAÇÃO MAPA ---
-    function initMap() {
-      const mtBounds = L.latLngBounds(L.latLng(-18.5, -62.0), L.latLng(-7.0, -49.5));
-
-      map = L.map('map', {
-        zoomControl: false,
-        attributionControl: false,
-        fadeAnimation: true,
-        maxBounds: mtBounds,
-        maxBoundsViscosity: 1.0,
-        minZoom: 5,
-        maxZoom: 10
-      }).setView([-13.0, -56.0], 6);
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        subdomains: 'abcd',
-      }).addTo(map);
-
-      const geoJsonUrl = 'https://servicodados.ibge.gov.br/api/v3/malhas/estados/51?formato=application/vnd.geo+json&resolucao=5';
-      
-      fetch(geoJsonUrl)
-        .then(res => {
-            if (!res.ok) throw new Error("Falha ao comunicar com IBGE");
-            return res.json();
-        })
-        .then(data => {
-          window.defaultStyle = window.defaultStyle || { color: 'rgba(52, 211, 153, 0.6)', weight: 1.5, fillColor: '#0a110d', fillOpacity: 0.1 };
-          window.highlightStyle = window.highlightStyle || { color: 'rgba(52, 211, 153, 0.8)', weight: 2.5, fillColor: 'rgba(16, 185, 129, 0.15)', fillOpacity: 1 };
-
-          window.geojsonLayer = L.geoJSON(data, {
-            style: window.defaultStyle,
-            onEachFeature: (feature, layer) => {
-              layer.on({
-                mouseover: (e) => {
-                  const target = e.target;
-                  target.setStyle(window.highlightStyle);
-                  if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) target.bringToFront();
-                },
-                mouseout: (e) => window.geojsonLayer.resetStyle(e.target)
-              });
-            }
-          }).addTo(map);
-        })
-        .catch(err => {
-            console.warn("Aviso: Não foi possível desenhar a fronteira de MT. O mapa base continuará a funcionar.", err);
-        })
-        .finally(() => {
-            // Garante que o spinner desaparece sempre, com sucesso ou erro!
-            const spinner = document.getElementById('loadingSpinner');
-            if (spinner) spinner.style.display = 'none';
-            
-            // Força o mapa a recalcular o seu tamanho para evitar áreas cinzentas
-            setTimeout(() => map.invalidateSize(), 500);
-        });
-
-      CITIES_DATA.forEach(city => {
-        const icon = L.divIcon({
-          className: 'custom-leaflet-marker',
-          html: getMarkerHtml(city, false),
-          iconSize: [0, 0]
-        });
-
-        const marker = L.marker([city.lat, city.lng], { icon }).addTo(map);
-        
-        // Passa a flag 'map' informando que o rato está no mapa
-        marker.on('mouseover', () => updateSelection(city.id, 'map'));
-        marker.on('mouseout', () => updateSelection(null, null));
-        marker.on('click', () => openCityModal(city.id));
-        
-        leafletMarkers.set(city.id, marker);
-      });
-    }
-
-    document.getElementById('cityInfoModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeCityModal();
-        }
-    });
-
-    // --- ARRANQUE ---
+    // ARRANQUE
     document.addEventListener('DOMContentLoaded', async () => {
-      // Carrega o tema localmente guardado antes de renderizar
-      const savedTheme = localStorage.getItem('themeColor');
-      if (savedTheme) {
-          applyTheme(savedTheme);
-      } else {
-          window.globalHex = '#10b981';
-          window.globalRgb = '16, 185, 129';
-      }
-
-      updateChartAndSummary();
-      renderCities();
-      initMap();
-
-      document.getElementById('searchInput').addEventListener('input', (e) => {
-        renderCities(e.target.value);
-      });
-
-      await loadDataFromSheets();
+        applyTheme(localStorage.getItem('themeColor') || '#10b981');
+        updateChartAndSummary(); renderCities(); initMap();
+        document.getElementById('searchInput').addEventListener('input', e => renderCities(e.target.value));
+        await loadDataFromSheets();
     });
-
   </script>
 </body>
 </html>
