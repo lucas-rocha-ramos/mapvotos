@@ -29,21 +29,30 @@
     .leaflet-control-container { display: none !important; }
     .leaflet-container { background: transparent !important; font-family: inherit; }
     .custom-leaflet-marker { background: none; border: none; }
+    
+    /* Hover State Escuro */
     .city-item-active { background-color: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.2) !important; }
 
-    /* CSS do Modo Claro */
+    /* CSS DO MODO CLARO (Correção Aplicada) */
     body.light-mode { background-color: #f3f4f6 !important; color: #1f2937 !important; }
-    .light-mode .bg-\\[\\#0a110d\\] { background-color: #f3f4f6 !important; }
-    .light-mode .bg-\\[\\#0d1410\\] { background-color: #ffffff !important; }
+    .light-mode .bg-\[\#0a110d\] { background-color: #f3f4f6 !important; }
+    .light-mode .bg-\[\#0d1410\] { background-color: #ffffff !important; }
     .light-mode .text-white { color: #1f2937 !important; }
-    .light-mode .text-white\\/50, .light-mode .text-white\\/40, .light-mode .text-white\\/30 { color: #6b7280 !important; }
-    .light-mode .text-white\\/80, .light-mode .text-white\\/90 { color: #111827 !important; }
-    .light-mode .border-white\\/10, .light-mode .border-white\\/5, .light-mode .border-white\\/20 { border-color: #e5e7eb !important; }
-    .light-mode .bg-white\\/5, .light-mode .bg-white\\/10 { background-color: #ffffff !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .light-mode .bg-black\\/20, .light-mode .bg-black\\/40 { background-color: #f9fafb !important; }
-    .light-mode .bg-black\\/80 { background-color: rgba(255,255,255,0.95) !important; }
+    .light-mode .text-white\/50, .light-mode .text-white\/40, .light-mode .text-white\/30 { color: #6b7280 !important; }
+    .light-mode .text-white\/80, .light-mode .text-white\/90 { color: #111827 !important; }
+    .light-mode .border-white\/10, .light-mode .border-white\/5, .light-mode .border-white\/20 { border-color: #e5e7eb !important; }
+    .light-mode .bg-white\/5, .light-mode .bg-white\/10 { background-color: #ffffff !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .light-mode .hover\:bg-white\/5:hover { background-color: #f3f4f6 !important; }
+    .light-mode .bg-black\/20, .light-mode .bg-black\/40 { background-color: #f3f4f6 !important; }
+    .light-mode .bg-black\/80 { background-color: rgba(255,255,255,0.95) !important; }
+    .light-mode .from-white\/5 { background: #f9fafb !important; }
+    .light-mode .city-item-active { background-color: rgba(0, 0, 0, 0.05) !important; border-color: rgba(0, 0, 0, 0.1) !important; }
     .light-mode #cityInfoContent, .light-mode #adminModal > div, .light-mode #loginModal > div { background-color: #ffffff !important; border-color: #e5e7eb !important; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     .light-mode .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.2); }
+    .light-mode .bg-white\/40 { background-color: rgba(0,0,0,0.2) !important; }
+    .light-mode .border-white\/80 { border-color: rgba(0,0,0,0.5) !important; }
+    .light-mode .bg-white { background-color: #374151 !important; }
+    .light-mode input::placeholder { color: #9ca3af !important; }
   </style>
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col lg:flex-row bg-[#0a110d]">
@@ -60,9 +69,7 @@
         </div>
         <div class="flex items-center gap-1">
           <button id="installBtn" class="hidden text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors px-2 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1"><i data-lucide="download" class="w-3.5 h-3.5"></i> App</button>
-          
           <button id="themeBtn" onclick="toggleTheme()" class="text-white/30 hover:text-emerald-400 transition-colors p-2 bg-white/5 rounded-xl"><i data-lucide="sun" class="w-4 h-4"></i></button>
-          
           <button onclick="document.getElementById('loginModal').classList.remove('hidden')" class="text-white/30 hover:text-emerald-400 transition-colors p-2 bg-white/5 rounded-xl"><i data-lucide="lock" class="w-4 h-4"></i></button>
         </div>
       </div>
@@ -242,11 +249,9 @@
         document.body.classList.toggle('light-mode');
         const isLight = document.body.classList.contains('light-mode');
         
-        // Atualiza ícone do botão de forma segura para o Lucide
         document.getElementById('themeBtn').innerHTML = `<i data-lucide="${isLight ? 'moon' : 'sun'}" class="w-4 h-4"></i>`;
         lucide.createIcons();
         
-        // Atualiza mapa e gráfico
         if(tileLayer) tileLayer.setUrl(isLight ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
         if(invertedPolygon) invertedPolygon.setStyle({ fillColor: isLight ? '#f3f4f6' : '#0a110d' });
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
@@ -324,7 +329,7 @@
         } catch (e) { console.error("Falha DB:", e); }
     }
 
-    // --- MAPA LEAFLET RESILIENTE (Tolerância a falhas na Máscara) ---
+    // --- MAPA LEAFLET RESILIENTE ---
     function initMap() {
         const mapContainer = document.getElementById('map');
         map = L.map(mapContainer, { zoomControl: false, attributionControl: false, fadeAnimation: false, maxBounds: L.latLngBounds(L.latLng(-18.5, -62.0), L.latLng(-7.0, -49.5)), maxBoundsViscosity: 1.0, minZoom: 4, maxZoom: 10 }).setView([-13.0, -56.0], window.innerWidth < 768 ? 5 : 6);
@@ -335,7 +340,6 @@
         fetch('https://servicodados.ibge.gov.br/api/v3/malhas/estados/51?formato=application/vnd.geo+json&resolucao=5')
             .then(res => res.ok ? res.json() : Promise.reject())
             .then(data => {
-                // Desenha a linha de fronteira de MT
                 L.geoJSON(data, { 
                     style: { color: 'rgba(16, 185, 129, 0.3)', weight: 1.5, fillColor: 'transparent' }, 
                     onEachFeature: (f, layer) => { 
@@ -346,7 +350,6 @@
                     } 
                 }).addTo(map);
 
-                // Máscara invertida encapsulada em try/catch para não travar o JS
                 try {
                     const worldCoords = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
                     let holes = [];
@@ -355,10 +358,10 @@
                             if (f.geometry.type === 'Polygon') holes.push(f.geometry.coordinates[0].map(c => [c[1], c[0]]));
                             else if (f.geometry.type === 'MultiPolygon') f.geometry.coordinates.forEach(p => holes.push(p[0].map(c => [c[1], c[0]])));
                         });
-                        invertedPolygon = L.polygon([worldCoords, ...holes], { color: 'transparent', fillColor: isLight ? '#f3f4f6' : '#0a110d', fillOpacity: 0.9, interactive: false }).addTo(map);
+                        invertedPolygon = L.polygon([worldCoords, ...holes], { color: 'transparent', fillColor: isLight ? '#f3f4f6' : '#0a110d', fillOpacity: 1, interactive: false }).addTo(map);
                     }
                 } catch(err) { console.warn("Erro ao gerar máscara:", err); }
-            }).catch(() => {});
+            }).catch(() => {}); // Retiramos o finally daqui para destrancar o carregamento
 
         CITIES_DATA.forEach(city => {
             const icon = L.divIcon({ className: 'custom-leaflet-marker', html: getMarkerHtml(city, false), iconSize: [0, 0] });
@@ -528,7 +531,6 @@
 
     // ARRANQUE SEGURO
     document.addEventListener('DOMContentLoaded', async () => {
-        // Aplica o tema sem depender de IDs
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light') {
             document.body.classList.add('light-mode');
@@ -537,11 +539,10 @@
         
         lucide.createIcons();
         
-        // Remove a tela de carregamento IMEDIATAMENTE
+        // Remove a tela de carregamento IMEDIATAMENTE (Destrava o App)
         const spinner = document.getElementById('loadingSpinner');
         if(spinner) spinner.style.display = 'none';
 
-        // Tenta inicializar os componentes com proteção
         try { initMap(); } catch(err) { console.error('Erro no mapa', err); }
         try { updateChartAndSummary(); } catch(err) { console.error('Erro no gráfico', err); }
         try { renderCities(); } catch(err) { console.error('Erro na lista', err); }
