@@ -13,11 +13,8 @@
   <link rel="apple-touch-icon" href="https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
   <script src="https://unpkg.com/lucide@latest"></script>
-  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -30,7 +27,6 @@
     .leaflet-container { background: transparent !important; font-family: inherit; }
     .custom-leaflet-marker { background: none; border: none; }
     
-    /* Hover State Escuro */
     .city-item-active { background-color: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.2) !important; }
 
     /* CSS DO MODO CLARO */
@@ -242,26 +238,21 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // --- LÓGICA DO TEMA CLARO/ESCURO ---
     let tileLayer; let invertedPolygon;
     
     function toggleTheme() {
         document.body.classList.toggle('light-mode');
         const isLight = document.body.classList.contains('light-mode');
-        
         document.getElementById('themeBtn').innerHTML = `<i data-lucide="${isLight ? 'moon' : 'sun'}" class="w-4 h-4"></i>`;
         lucide.createIcons();
-        
         if(invertedPolygon) invertedPolygon.setStyle({ fillColor: isLight ? '#f3f4f6' : '#0a110d' });
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        
         if(regionChartInstance) { 
             regionChartInstance.options.scales.y.ticks.color = isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)'; 
             regionChartInstance.update(); 
         }
     }
 
-    // --- PWA SETUP ---
     let deferredPrompt; const installBtn = document.getElementById('installBtn');
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.classList.remove('hidden'); });
@@ -271,17 +262,11 @@
     // =========================================================================
     // 🔗 SUA URL GOOGLE APPS SCRIPT
     // =========================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNq2_4tRLYd-upedIy1yvzKr3nzm5Bf4xx2dRs2MHv_1ZegOPnqQ7Yh1fcIffiPUgu/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydLTZhsbhbPkzeJikIgF11cmR2JCpCrr2Fffh6day_VrE29zgwhzZDL8iomf-cOQ1Q/exec';
+    
     const formatNumber = (num) => new Intl.NumberFormat('pt-BR').format(num);
-    const hexToRgb = (hex) => { 
-        if(!hex || typeof hex !== 'string' || !hex.startsWith('#')) return "16, 185, 129";
-        let r=0,g=0,b=0; 
-        if(hex.length===4){r=parseInt(hex[1]+hex[1],16);g=parseInt(hex[2]+hex[2],16);b=parseInt(hex[3]+hex[3],16);}
-        else if(hex.length===7){r=parseInt(hex.substring(1,3),16);g=parseInt(hex.substring(3,5),16);b=parseInt(hex.substring(5,7),16);} 
-        return `${r}, ${g}, ${b}`; 
-    };
+    const hexToRgb = (hex) => { if(!hex || typeof hex !== 'string' || !hex.startsWith('#')) return "16, 185, 129"; let r=0,g=0,b=0; if(hex.length===4){r=parseInt(hex[1]+hex[1],16);g=parseInt(hex[2]+hex[2],16);b=parseInt(hex[3]+hex[3],16);}else if(hex.length===7){r=parseInt(hex.substring(1,3),16);g=parseInt(hex.substring(3,5),16);b=parseInt(hex.substring(5,7),16);} return `${r}, ${g}, ${b}`; };
 
-    // --- DADOS ---
     const KNOWN_CITIES = [
       { name: 'Tangará da Serra', lat: -14.6189, lng: -57.4846, region: 'Região Oeste', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 106434 },
       { name: 'Cuiabá', lat: -15.6014, lng: -56.0979, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 650912 },
@@ -312,18 +297,22 @@
     let map, regionChartInstance;
     let leafletMarkers = new Map();
 
-    // --- CARREGAR DB FORTE E RESILIENTE ---
+    // --- COMUNICAÇÃO ROBUSTA COM O GOOGLE SHEETS ---
     async function loadDataFromSheets() {
         if (SCRIPT_URL.includes('COLE_AQUI')) return;
         try {
             const res = await fetch(SCRIPT_URL); 
             const text = await res.text();
-            let data;
             
-            try { data = JSON.parse(text); } 
-            catch(err) { console.error("Resposta não é JSON. A API Google bloqueou ou a URL está errada."); return; }
+            if (text.includes('<html') || text.includes('google.com/login')) {
+                alert("ERRO DE PERMISSÃO: A sua API do Google Sheets não está pública. Vá no Apps Script > Implantar > Gerenciar Implantações > Edite o acesso para 'Qualquer Pessoa' e crie uma NOVA VERSÃO.");
+                return;
+            }
 
-            // Permite que o código funcione quer o Apps Script retorne [array] antigo ou {cities: array} novo
+            let data;
+            try { data = JSON.parse(text); } 
+            catch(err) { console.error("Resposta inválida da planilha."); return; }
+
             let citiesArray = [];
             if (Array.isArray(data)) citiesArray = data;
             else if (data && Array.isArray(data.cities)) citiesArray = data.cities;
@@ -345,13 +334,12 @@
         } catch (e) { console.error("Falha ao comunicar com o Google Sheets:", e); }
     }
 
-    // --- MAPA LEAFLET ---
+    // --- MAPA LEAFLET SATÉLITE ---
     function initMap() {
         const mapContainer = document.getElementById('map');
         map = L.map(mapContainer, { zoomControl: false, attributionControl: false, fadeAnimation: false, maxBounds: L.latLngBounds(L.latLng(-18.5, -62.0), L.latLng(-7.0, -49.5)), maxBoundsViscosity: 1.0, minZoom: 4, maxZoom: 10 }).setView([-13.0, -56.0], window.innerWidth < 768 ? 5 : 6);
         
         const isLight = document.body.classList.contains('light-mode');
-        
         tileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }).addTo(map);
 
         fetch('https://servicodados.ibge.gov.br/api/v3/malhas/estados/51?formato=application/vnd.geo+json&resolucao=5')
@@ -509,13 +497,12 @@
         }
     }
 
-    // --- ADMIN COM FEEDBACK DE SUCESSO ---
+    // --- ADMIN ---
     function attemptLogin() { 
         if(document.getElementById('adminPassword').value === 'Chico2026') { 
             document.getElementById('loginModal').classList.add('hidden'); document.getElementById('adminModal').classList.remove('hidden'); 
             const s = document.getElementById('adminCitySelect'); s.innerHTML=''; 
             [...CITIES_DATA].sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => s.appendChild(new Option(c.name, c.id))); 
-            
             updateAdminInput(); 
         } else alert('Senha incorreta!'); 
     }
@@ -547,7 +534,15 @@
             CITIES_DATA.sort((a,b)=>b.votes-a.votes); renderCities(document.getElementById('searchInput').value); updateChartAndSummary(); refreshMarkers();
             
             if(!SCRIPT_URL.includes('COLE_AQUI')) {
-                try { await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'updateCity', name: c.name, votes: c.votes, population: c.population, activeVoters: c.activeVoters, metaVotes: c.metaVotes, color: c.color }) }); } catch(e){}
+                try { 
+                    const payload = JSON.stringify({ action: 'updateCity', name: c.name, votes: c.votes, population: c.population, activeVoters: c.activeVoters, metaVotes: c.metaVotes, color: c.color });
+                    await fetch(SCRIPT_URL, { 
+                        method: 'POST', 
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                        body: payload 
+                    }); 
+                } catch(e){ console.error(e); }
             }
             
             btn.innerHTML='<i data-lucide="check" class="w-4 h-4"></i> Alteração Concluída!';
