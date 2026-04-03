@@ -33,7 +33,7 @@
     /* Hover State Escuro */
     .city-item-active { background-color: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.2) !important; }
 
-    /* CSS DO MODO CLARO (Correção Aplicada) */
+    /* CSS DO MODO CLARO */
     body.light-mode { background-color: #f3f4f6 !important; color: #1f2937 !important; }
     .light-mode .bg-\[\#0a110d\] { background-color: #f3f4f6 !important; }
     .light-mode .bg-\[\#0d1410\] { background-color: #ffffff !important; }
@@ -75,13 +75,13 @@
       </div>
       
       <div class="grid grid-cols-2 gap-2 mb-4 relative z-10">
-          <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-3 flex flex-col justify-center">
-            <span class="text-[9px] text-emerald-100/50 uppercase font-semibold">Votos Atuais</span>
-            <span id="totalVotesDisplay" class="text-lg font-bold text-emerald-400">0</span>
-          </div>
           <div class="bg-blue-900/20 border border-blue-500/20 rounded-2xl p-3 flex flex-col justify-center">
-            <span class="text-[9px] text-blue-100/50 uppercase font-semibold">Meta Global</span>
-            <span id="totalMetaDisplay" class="text-lg font-bold text-blue-400">0</span>
+            <span class="text-[9px] text-blue-100/50 uppercase font-semibold">Votos Atuais</span>
+            <span id="totalVotesDisplay" class="text-lg font-bold text-blue-400">0</span>
+          </div>
+          <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-3 flex flex-col justify-center">
+            <span class="text-[9px] text-emerald-100/50 uppercase font-semibold">Expectativa 2026</span>
+            <span id="totalMetaDisplay" class="text-lg font-bold text-emerald-400">0</span>
           </div>
       </div>
       
@@ -150,13 +150,13 @@
           </div>
 
           <div class="grid grid-cols-2 gap-3 mb-3">
-              <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-3">
-                  <p class="text-[9px] text-emerald-500 uppercase mb-1">Votos Atuais</p>
-                  <p id="modalCityVotes" class="text-xl font-bold text-emerald-500">0</p>
-              </div>
               <div class="bg-blue-900/20 border border-blue-500/20 rounded-2xl p-3">
-                  <p class="text-[9px] text-blue-500 uppercase mb-1">Meta de voto Atual</p>
-                  <p id="modalCityMeta" class="text-xl font-bold text-blue-500">0</p>
+                  <p class="text-[9px] text-blue-500 uppercase mb-1">Votos Atuais</p>
+                  <p id="modalCityVotes" class="text-xl font-bold text-blue-500">0</p>
+              </div>
+              <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-2xl p-3">
+                  <p class="text-[9px] text-emerald-500 uppercase mb-1">Meta de voto Atual</p>
+                  <p id="modalCityMeta" class="text-xl font-bold text-emerald-500">0</p>
               </div>
           </div>
           
@@ -205,12 +205,12 @@
 
               <div class="grid grid-cols-2 gap-3 mb-3">
                   <div>
-                      <label class="block text-[10px] font-semibold text-emerald-400 uppercase mb-1.5">Votos Atuais</label>
-                      <input type="number" id="adminVotesInput" class="w-full bg-emerald-900/20 border border-emerald-500/30 rounded-xl p-2.5 text-sm text-white">
+                      <label class="block text-[10px] font-semibold text-blue-400 uppercase mb-1.5">Votos Atuais</label>
+                      <input type="number" id="adminVotesInput" class="w-full bg-blue-900/20 border border-blue-500/30 rounded-xl p-2.5 text-sm text-white">
                   </div>
                   <div>
-                      <label class="block text-[10px] font-semibold text-blue-400 uppercase mb-1.5">Meta de voto Atual</label>
-                      <input type="number" id="adminMetaInput" class="w-full bg-blue-900/20 border border-blue-500/30 rounded-xl p-2.5 text-sm text-white">
+                      <label class="block text-[10px] font-semibold text-emerald-400 uppercase mb-1.5">Meta de voto Atual</label>
+                      <input type="number" id="adminMetaInput" class="w-full bg-emerald-900/20 border border-emerald-500/30 rounded-xl p-2.5 text-sm text-white">
                   </div>
               </div>
               
@@ -361,7 +361,7 @@
                         invertedPolygon = L.polygon([worldCoords, ...holes], { color: 'transparent', fillColor: isLight ? '#f3f4f6' : '#0a110d', fillOpacity: 1, interactive: false }).addTo(map);
                     }
                 } catch(err) { console.warn("Erro ao gerar máscara:", err); }
-            }).catch(() => {}); // Retiramos o finally daqui para destrancar o carregamento
+            }).catch(() => {});
 
         CITIES_DATA.forEach(city => {
             const icon = L.divIcon({ className: 'custom-leaflet-marker', html: getMarkerHtml(city, false), iconSize: [0, 0] });
@@ -539,7 +539,6 @@
         
         lucide.createIcons();
         
-        // Remove a tela de carregamento IMEDIATAMENTE (Destrava o App)
         const spinner = document.getElementById('loadingSpinner');
         if(spinner) spinner.style.display = 'none';
 
