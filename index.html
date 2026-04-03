@@ -399,7 +399,7 @@
         CITIES_DATA.forEach(city => { const m = leafletMarkers.get(city.id); if(m) m.setIcon(L.divIcon({ className: 'custom-leaflet-marker', html: getMarkerHtml(city, currentSelectedCityId === city.id), iconSize: [0,0] })); });
     }
 
-    // --- RENDERIZAÇÃO DE CIDADES COM DESTAQUE NA META E VOTOS ANTERIORES ---
+    // --- RENDERIZAÇÃO DE CIDADES ---
     function renderCities(search = "") {
         const container = document.getElementById('cityList'); container.innerHTML = '';
         CITIES_DATA.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).forEach(city => {
@@ -418,7 +418,7 @@
                     </div>
                     <div class="text-right leading-none">
                         <p class="font-bold text-base text-emerald-400">${formatNumber(city.metaVotes)}</p>
-                        <p class="text-[9px] text-white/50 mt-1">Ant: ${formatNumber(city.prevVotes)}</p>
+                        <p class="text-[9px] text-white/50 mt-1">Atuais: ${formatNumber(city.votes)}</p>
                     </div>
                 </div>
                 ${city.votes > 0 ? `<div class="w-full h-1 bg-black/40 rounded-full overflow-hidden mt-1"><div class="h-full rounded-full" style="width: ${percent}%; background-color: ${cColor};"></div></div>` : ''}`;
@@ -505,7 +505,6 @@
             const s = document.getElementById('adminCitySelect'); s.innerHTML=''; 
             [...CITIES_DATA].sort((a,b)=>a.name.localeCompare(b.name)).forEach(c => s.appendChild(new Option(c.name, c.id))); 
             
-            // Adicionado input para Votos Anteriores na UI dinâmica
             if(!document.getElementById('adminPrevInput')) {
                 const container = document.getElementById('adminActiveVotersInput').parentNode.parentNode;
                 const prevDiv = document.createElement('div');
@@ -550,7 +549,6 @@
                 try { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateCity', name: c.name, votes: c.votes, population: c.population, activeVoters: c.activeVoters, metaVotes: c.metaVotes, color: c.color, prevVotes: c.prevVotes }) }); } catch(e){}
             }
             
-            // Feedback Visual de Sucesso
             btn.innerHTML='<i data-lucide="check" class="w-4 h-4"></i> Alteração Concluída!';
             btn.classList.replace('bg-emerald-600', 'bg-blue-600');
             lucide.createIcons();
