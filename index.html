@@ -13,8 +13,11 @@
   <link rel="apple-touch-icon" href="https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
   <script src="https://unpkg.com/lucide@latest"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -27,6 +30,7 @@
     .leaflet-container { background: transparent !important; font-family: inherit; }
     .custom-leaflet-marker { background: none; border: none; }
     
+    /* Hover State Escuro */
     .city-item-active { background-color: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.2) !important; }
 
     /* CSS DO MODO CLARO */
@@ -301,7 +305,9 @@
     async function loadDataFromSheets() {
         if (SCRIPT_URL.includes('COLE_AQUI')) return;
         try {
-            const res = await fetch(SCRIPT_URL); 
+            // Adicionado cache-busting (?t=123456789) para forçar o Google a entregar dados novos e não lidos do cache do navegador
+            const fetchUrl = SCRIPT_URL + (SCRIPT_URL.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+            const res = await fetch(fetchUrl); 
             const text = await res.text();
             
             if (text.includes('<html') || text.includes('google.com/login')) {
