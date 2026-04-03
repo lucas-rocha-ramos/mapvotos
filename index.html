@@ -247,7 +247,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // --- LÓGICA DO TEMA CLARO/ESCURO ---
+    // --- LÓGICA DO TEMA CLARO/ESCURO COM MAPA SATÉLITE ---
     let tileLayer; let invertedPolygon;
     
     function toggleTheme() {
@@ -257,7 +257,7 @@
         document.getElementById('themeBtn').innerHTML = `<i data-lucide="${isLight ? 'moon' : 'sun'}" class="w-4 h-4"></i>`;
         lucide.createIcons();
         
-        if(tileLayer) tileLayer.setUrl(isLight ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
+        // O mapa satélite não muda de cor com o tema, apenas a máscara invertida (o fundo em volta do MT)
         if(invertedPolygon) invertedPolygon.setStyle({ fillColor: isLight ? '#f3f4f6' : '#0a110d' });
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
         
@@ -341,7 +341,9 @@
         map = L.map(mapContainer, { zoomControl: false, attributionControl: false, fadeAnimation: false, maxBounds: L.latLngBounds(L.latLng(-18.5, -62.0), L.latLng(-7.0, -49.5)), maxBoundsViscosity: 1.0, minZoom: 4, maxZoom: 10 }).setView([-13.0, -56.0], window.innerWidth < 768 ? 5 : 6);
         
         const isLight = document.body.classList.contains('light-mode');
-        tileLayer = L.tileLayer(isLight ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+        
+        // Aqui está a MÁGICA DO SATÉLITE
+        tileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }).addTo(map);
 
         fetch('https://servicodados.ibge.gov.br/api/v3/malhas/estados/51?formato=application/vnd.geo+json&resolucao=5')
             .then(res => res.ok ? res.json() : Promise.reject())
@@ -498,7 +500,7 @@
         }
     }
 
-    // --- ADMIN COM FEEDBACK DE SUCESSO ---
+    // --- ADMIN ---
     function attemptLogin() { 
         if(document.getElementById('adminPassword').value === 'Chico2026') { 
             document.getElementById('loginModal').classList.add('hidden'); document.getElementById('adminModal').classList.remove('hidden'); 
