@@ -309,7 +309,7 @@
                 data.forEach(remoteCity => {
                     const localCity = CITIES_DATA.find(c => c.name === remoteCity.name);
                     if (localCity) {
-                        localCity.votes = parseInt(remoteCity.votes) || 0;
+                        localCity.votes = parseInt(remoteCity.votes) || parseInt(remoteCity.votos) || 0;
                         localCity.population = parseInt(remoteCity.population) || localCity.population;
                         localCity.activeVoters = parseInt(remoteCity.activeVoters) || 0;
                         localCity.metaVotes = parseInt(remoteCity.metaVotes) || 0;
@@ -371,7 +371,10 @@
         const cColor = city.color || '#10b981'; const cRgb = hexToRgb(cColor);
         const pingHtml = (!isZero && isSelected) ? `<div class="absolute inset-0 rounded-full animate-ping" style="background-color: rgba(${cRgb}, 0.5); padding: ${size/2}px; top: -${size/2}px; left: -${size/2}px; width: ${size*2}px; height: ${size*2}px;"></div>` : '';
         const zIdx = isSelected ? 'z-[1000]' : 'z-[50]';
-        const bgStyle = isZero ? 'background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);' : `background-color: ${isSelected ? cColor : `rgba(${cRgb}, 0.5)`}; border-color: ${cColor}; box-shadow: 0 0 10px rgba(${cRgb}, 0.5);`;
+        
+        // MUDANÇA AQUI: Se for zero, aplica a cor com transparência, se não, cor sólida.
+        const bgStyle = isZero ? `background-color: rgba(${cRgb}, 0.4); border-color: ${cColor};` : `background-color: ${isSelected ? cColor : `rgba(${cRgb}, 0.5)`}; border-color: ${cColor}; box-shadow: 0 0 10px rgba(${cRgb}, 0.5);`;
+        
         const label = (!isSelected && city.votes > 1000) ? `<span class="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-white/80 whitespace-nowrap">${city.name}</span>` : '';
         
         return `<div class="relative flex items-center justify-center">
@@ -526,6 +529,7 @@
                     const payload = JSON.stringify({ action: 'updateCity', name: c.name, votes: c.votes, population: c.population, activeVoters: c.activeVoters, metaVotes: c.metaVotes, color: c.color });
                     await fetch(SCRIPT_URL, { 
                         method: 'POST', 
+                        mode: 'no-cors',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
                         body: payload 
                     }); 
