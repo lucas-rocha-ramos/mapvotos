@@ -262,7 +262,7 @@
     // =========================================================================
     // 🔗 SUA URL GOOGLE APPS SCRIPT
     // =========================================================================
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdZ-ge-EtBZkYTR6nDRvEU53O_25TjSSxfmWq4a4rOHs9QNhqlvqHvDTlkQmTRTZ6E/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXzKWFBF7C3TONmsAVi8D8vzv8qoUx3pNx889ZnxDSb_zryNx9eiwrhWLoh5DSgTWu/exec';
     
     const formatNumber = (num) => new Intl.NumberFormat('pt-BR').format(num);
     const hexToRgb = (hex) => { if(!hex || typeof hex !== 'string' || !hex.startsWith('#')) return "16, 185, 129"; let r=0,g=0,b=0; if(hex.length===4){r=parseInt(hex[1]+hex[1],16);g=parseInt(hex[2]+hex[2],16);b=parseInt(hex[3]+hex[3],16);}else if(hex.length===7){r=parseInt(hex.substring(1,3),16);g=parseInt(hex.substring(3,5),16);b=parseInt(hex.substring(5,7),16);} return `${r}, ${g}, ${b}`; };
