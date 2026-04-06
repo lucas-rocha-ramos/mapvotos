@@ -13,8 +13,11 @@
   <link rel="apple-touch-icon" href="https://i.ibb.co/rf7jGKNZ/Perfil-Mapeamento.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
   <script src="https://unpkg.com/lucide@latest"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -27,6 +30,7 @@
     .leaflet-container { background: transparent !important; font-family: inherit; }
     .custom-leaflet-marker { background: none; border: none; }
     
+    /* Hover State Escuro */
     .city-item-active { background-color: rgba(255, 255, 255, 0.08) !important; border-color: rgba(255, 255, 255, 0.2) !important; }
 
     /* CSS DO MODO CLARO */
@@ -137,11 +141,19 @@
       <div class="bg-[#0d1410] border border-white/20 p-6 rounded-3xl shadow-2xl w-full max-w-[380px] relative transform scale-95 transition-transform" id="cityInfoContent">
           <button onclick="closeCityModal()" class="absolute top-4 right-4 text-white/50 hover:text-white bg-white/5 rounded-full p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
           
-          <div class="flex items-center gap-3 mb-6">
+          <div class="flex items-center gap-3 mb-4">
               <div id="modalIconBg" class="p-2.5 rounded-xl border"><i data-lucide="map-pin" class="w-5 h-5 text-white" id="modalIcon"></i></div>
               <div>
                   <h2 id="modalCityName" class="text-xl font-bold text-white">Nome</h2>
                   <p id="modalCityRegion" class="text-[10px] font-semibold uppercase mt-0.5 text-white/50">Região</p>
+              </div>
+          </div>
+
+          <div class="bg-white/5 border border-white/5 rounded-2xl p-3 mb-4 flex items-center gap-3">
+              <div class="p-2 bg-white/10 rounded-lg"><i data-lucide="user" class="w-4 h-4 text-white/70"></i></div>
+              <div>
+                  <p class="text-[9px] text-white/50 uppercase">Liderança Local</p>
+                  <p id="modalCityLeader" class="text-sm font-bold text-white truncate max-w-[220px]">Nenhuma liderança vinculada</p>
               </div>
           </div>
 
@@ -221,6 +233,11 @@
                   </div>
               </div>
 
+              <div class="mb-4">
+                  <label class="block text-[10px] font-semibold text-white/50 uppercase mb-1.5">Liderança Local</label>
+                  <input type="text" id="adminLeaderInput" placeholder="Nome do líder responsável..." class="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+              </div>
+
               <div class="mb-5 border-t border-white/10 pt-4 mt-2">
                   <label class="block text-[10px] font-semibold text-white/50 uppercase mb-1.5">Cor de Investimento da Cidade</label>
                   <div class="flex gap-3 items-center">
@@ -267,7 +284,6 @@
     const formatNumber = (num) => new Intl.NumberFormat('pt-BR').format(num);
     const hexToRgb = (hex) => { if(!hex || typeof hex !== 'string' || !hex.startsWith('#')) return "16, 185, 129"; let r=0,g=0,b=0; if(hex.length===4){r=parseInt(hex[1]+hex[1],16);g=parseInt(hex[2]+hex[2],16);b=parseInt(hex[3]+hex[3],16);}else if(hex.length===7){r=parseInt(hex.substring(1,3),16);g=parseInt(hex.substring(3,5),16);b=parseInt(hex.substring(5,7),16);} return `${r}, ${g}, ${b}`; };
 
-    // --- FUNÇÃO PARA GERAR SIGLA DA CIDADE ---
     const getSigla = (name) => {
         const ignore = ['do', 'da', 'de', 'das', 'dos', 'e'];
         const words = name.replace(/'/g, " ").split(/[\s-]+/).filter(w => !ignore.includes(w.toLowerCase()) && w.length > 0);
@@ -276,27 +292,27 @@
     };
 
     const KNOWN_CITIES = [
-      { name: 'Tangará da Serra', lat: -14.6189, lng: -57.4846, region: 'Região Oeste', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 106434 },
-      { name: 'Cuiabá', lat: -15.6014, lng: -56.0979, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 650912 },
-      { name: 'Várzea Grande', lat: -15.6461, lng: -56.1326, region: 'Vale do R. Cuiabá', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 299472 },
-      { name: 'Sapezal', lat: -13.5458, lng: -58.8142, region: 'Região Norte', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 26822 }, 
-      { name: 'Juína', lat: -11.3756, lng: -58.7411, region: 'Médio Norte', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 41206 }, 
-      { name: 'Poconé', lat: -16.2567, lng: -56.6228, region: 'Médio Norte', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 33315 },
-      { name: 'Brasnorte', lat: -12.1444, lng: -57.9989, region: 'Médio Norte', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 20571 },
-      { name: 'Cáceres', lat: -16.0705, lng: -57.6826, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 89681 },
-      { name: 'Colniza', lat: -9.4147, lng: -59.0469, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 39989 },
-      { name: 'Alta Floresta', lat: -9.8761, lng: -56.0847, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 51959 },
-      { name: 'Querência', lat: -12.6053, lng: -52.2206, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 18360 },
-      { name: 'Paranatinga', lat: -14.4303, lng: -54.0583, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 23337 },
-      { name: 'Apiacás', lat: -9.4444, lng: -57.4086, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 10567 },
-      { name: 'Água Boa', lat: -14.0503, lng: -52.1600, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 26861 }
+      { name: 'Tangará da Serra', lat: -14.6189, lng: -57.4846, region: 'Região Oeste', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 106434, lideranca: '' },
+      { name: 'Cuiabá', lat: -15.6014, lng: -56.0979, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 650912, lideranca: '' },
+      { name: 'Várzea Grande', lat: -15.6461, lng: -56.1326, region: 'Vale do R. Cuiabá', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 299472, lideranca: '' },
+      { name: 'Sapezal', lat: -13.5458, lng: -58.8142, region: 'Região Norte', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 26822, lideranca: '' }, 
+      { name: 'Juína', lat: -11.3756, lng: -58.7411, region: 'Médio Norte', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 41206, lideranca: '' }, 
+      { name: 'Poconé', lat: -16.2567, lng: -56.6228, region: 'Médio Norte', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 33315, lideranca: '' },
+      { name: 'Brasnorte', lat: -12.1444, lng: -57.9989, region: 'Médio Norte', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 20571, lideranca: '' },
+      { name: 'Cáceres', lat: -16.0705, lng: -57.6826, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 89681, lideranca: '' },
+      { name: 'Colniza', lat: -9.4147, lng: -59.0469, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 39989, lideranca: '' },
+      { name: 'Alta Floresta', lat: -9.8761, lng: -56.0847, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 51959, lideranca: '' },
+      { name: 'Querência', lat: -12.6053, lng: -52.2206, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 18360, lideranca: '' },
+      { name: 'Paranatinga', lat: -14.4303, lng: -54.0583, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 23337, lideranca: '' },
+      { name: 'Apiacás', lat: -9.4444, lng: -57.4086, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 10567, lideranca: '' },
+      { name: 'Água Boa', lat: -14.0503, lng: -52.1600, region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 26861, lideranca: '' }
     ];
 
     const EXTRA_CITIES_STR = "Acorizal|-15.19|-56.36,Alto Araguaia|-17.31|-53.21,Alto Boa Vista|-11.67|-50.26,Alto Garças|-16.94|-53.52,Alto Paraguai|-14.50|-56.48,Alto Taquari|-17.82|-53.28,Araguaiana|-14.73|-51.84,Araguainha|-16.84|-53.03,Araputanga|-15.46|-58.30,Arenápolis|-14.45|-56.84,Aripuanã|-10.16|-59.45,Barão de Melgaço|-16.19|-55.96,Barra do Bugres|-15.07|-57.18,Barra do Garças|-15.89|-52.25,Bom Jesus do Araguaia|-12.12|-51.54,Campinápolis|-14.30|-53.06,Campo Novo do Parecis|-13.67|-57.88,Campo Verde|-15.54|-55.16,Campos de Júlio|-13.89|-59.14,Canabrava do Norte|-10.87|-51.52,Canarana|-13.55|-52.26,Carlinda|-9.96|-55.82,Castanheira|-11.13|-58.60,Chapada dos Guimarães|-15.45|-55.74,Cláudia|-11.49|-54.88,Cocalinho|-14.39|-50.99,Colíder|-10.80|-55.45,Comodoro|-13.66|-59.78,Confresa|-10.64|-51.56,Conquista D'Oeste|-15.05|-59.04,Cotriguaçu|-9.85|-58.48,Curvelândia|-15.60|-58.01,Denise|-14.73|-57.05,Diamantino|-14.40|-56.44,Dom Aquino|-15.80|-54.91,Feliz Natal|-12.38|-54.91,Figueirópolis D'Oeste|-15.44|-58.74,Gaúcha do Norte|-13.18|-53.08,General Carneiro|-15.71|-52.94,Glória D'Oeste|-15.73|-58.38,Guarantã do Norte|-9.78|-54.90,Guiratinga|-16.34|-53.75,Indiavaí|-15.29|-58.58,Ipiranga do Norte|-12.23|-56.17,Itanhangá|-12.22|-56.63,Itaúba|-11.02|-55.30,Itiquira|-17.20|-54.14,Jaciara|-15.96|-54.96,Jangada|-15.24|-56.48,Jauru|-15.34|-58.86,Juara|-11.25|-57.51,Juruena|-10.31|-58.48,Juscimeira|-16.05|-54.88,Lambari D'Oeste|-15.27|-58.01,Lucas do Rio Verde|-13.04|-55.91,Luciara|-11.19|-50.67,Marcelândia|-11.09|-54.43,Matupá|-10.04|-54.92,Mirassol d'Oeste|-15.67|-58.01,Nobres|-14.72|-56.32,Nortelândia|-14.45|-56.80,Nossa Senhora do Livramento|-15.77|-56.34,Nova Bandeirantes|-9.81|-57.65,Nova Brasilândia|-14.96|-54.97,Nova Canaã do Norte|-10.42|-55.65,Nova Guarita|-10.19|-55.27,Nova Lacerda|-14.46|-59.33,Nova Marilândia|-14.36|-57.06,Nova Maringá|-13.02|-57.08,Nova Monte Verde|-9.81|-57.53,Nova Mutum|-13.82|-56.08,Nova Nazaré|-13.78|-51.99,Nova Olímpia|-14.79|-57.28,Nova Santa Helena|-10.85|-55.21,Nova Ubiratã|-13.04|-55.25,Nova Xavantina|-14.66|-52.34,Novo Horizonte do Norte|-11.38|-57.34,Novo Mundo|-9.94|-55.21,Novo Santo Antônio|-12.28|-50.93,Novo São Joaquim|-14.90|-53.01,Paranaíta|-9.66|-56.47,Pedra Preta|-16.62|-54.47,Peixoto de Azevedo|-10.22|-54.97,Planalto da Serra|-14.30|-54.88,Pontal do Araguaia|-15.82|-52.26,Ponte Branca|-16.74|-53.07,Pontes e Lacerda|-15.22|-59.33,Porto Alegre do Norte|-10.58|-51.62,Porto dos Gaúchos|-11.53|-57.41,Porto Esperidião|-15.85|-58.46,Porto Estrela|-15.32|-57.22,Poxoréu|-15.83|-54.38,Primavera do Leste|-15.55|-54.29,Reserva do Cabaçal|-15.03|-58.39,Ribeirão Cascalheira|-12.91|-51.82,Ribeirãozinho|-16.48|-52.68,Rio Branco|-15.24|-58.11,Rondolândia|-9.80|-61.12,Rondonópolis|-16.46|-54.63,Rosário Oeste|-14.83|-56.42,Salto do Céu|-15.13|-58.13,Santa Carmem|-11.95|-55.26,Santa Cruz do Xingu|-9.73|-52.31,Santa Rita do Trivelato|-13.80|-55.21,Santa Terezinha|-10.47|-50.51,Santo Afonso|-14.39|-57.11,Santo Antônio do Leste|-14.81|-53.60,Santo Antônio do Leverger|-15.86|-56.07,São Félix do Araguaia|-11.61|-50.66,São José do Povo|-16.46|-54.25,São José do Rio Claro|-13.44|-56.72,São José dos Quatro Marcos|-15.62|-58.28,São Pedro da Cipa|-16.02|-54.90,Sapezal|-13.54|-58.81,Serra Nova Dourada|-12.87|-51.38,Sinop|-11.85|-55.50,Sorriso|-12.54|-55.72,Tabaporã|-11.29|-56.84,Tapurah|-12.82|-56.55,Terra Nova do Norte|-10.49|-55.23,Tesouro|-16.03|-53.51,Torixoréu|-16.20|-52.54,União do Sul|-11.53|-54.35,Vale de São Domingos|-15.12|-58.96,Vera|-12.30|-55.31,Vila Bela da Santíssima Trindade|-15.00|-59.95,Vila Rica|-10.01|-51.11";
 
     let CITIES_DATA = [...KNOWN_CITIES, ...EXTRA_CITIES_STR.split(',').map((item) => {
         const [name, lat, lng] = item.split('|');
-        return { name, lat: parseFloat(lat), lng: parseFloat(lng), region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 0 };
+        return { name, lat: parseFloat(lat), lng: parseFloat(lng), region: 'Outras Regiões', initialVotes: 0, metaVotes: 0, activeVoters: 0, population: 0, lideranca: '' };
     })].filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i).map((city, index) => {
         return { ...city, id: index + 1, votes: city.initialVotes, color: '#10b981' } 
     }).sort((a, b) => b.votes - a.votes);
@@ -305,7 +321,6 @@
     let map, regionChartInstance;
     let leafletMarkers = new Map();
 
-    // --- COMUNICAÇÃO ROBUSTA COM O GOOGLE SHEETS LENDO ARRAY LIMPO ---
     async function loadDataFromSheets() {
         if (SCRIPT_URL.includes('COLE_AQUI')) return;
         try {
@@ -322,6 +337,7 @@
                         localCity.activeVoters = parseInt(remoteCity.activeVoters) || 0;
                         localCity.metaVotes = parseInt(remoteCity.metaVotes) || 0;
                         localCity.color = remoteCity.color || '#10b981';
+                        localCity.lideranca = remoteCity.lideranca || '';
                     }
                 });
                 CITIES_DATA.sort((a, b) => b.votes - a.votes);
@@ -330,7 +346,6 @@
         } catch (e) { console.error("Falha ao comunicar com o Google Sheets:", e); }
     }
 
-    // --- MAPA LEAFLET SATÉLITE ---
     function initMap() {
         const mapContainer = document.getElementById('map');
         map = L.map(mapContainer, { zoomControl: false, attributionControl: false, fadeAnimation: false, maxBounds: L.latLngBounds(L.latLng(-18.5, -62.0), L.latLng(-7.0, -49.5)), maxBoundsViscosity: 1.0, minZoom: 4, maxZoom: 10 }).setView([-13.0, -56.0], window.innerWidth < 768 ? 5 : 6);
@@ -382,7 +397,6 @@
         
         const bgStyle = isZero ? `background-color: rgba(${cRgb}, 0.4); border-color: ${cColor};` : `background-color: ${isSelected ? cColor : `rgba(${cRgb}, 0.5)`}; border-color: ${cColor}; box-shadow: 0 0 10px rgba(${cRgb}, 0.5);`;
         
-        // MUDANÇA: Exibe apenas a sigla da cidade gerada pela função getSigla(city.name)
         const label = (!isSelected) ? `<span class="absolute -top-4 left-1/2 -translate-x-1/2 text-[6px] md:text-[9px] font-bold text-white whitespace-nowrap" style="text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000; z-index: 60; pointer-events: none;">${getSigla(city.name)}</span>` : '';
         
         return `<div class="relative flex items-center justify-center">
@@ -397,7 +411,6 @@
         CITIES_DATA.forEach(city => { const m = leafletMarkers.get(city.id); if(m) m.setIcon(L.divIcon({ className: 'custom-leaflet-marker', html: getMarkerHtml(city, currentSelectedCityId === city.id), iconSize: [0,0] })); });
     }
 
-    // --- RENDERIZAÇÃO DE CIDADES ---
     function renderCities(search = "") {
         const container = document.getElementById('cityList'); container.innerHTML = '';
         CITIES_DATA.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).forEach(city => {
@@ -438,6 +451,8 @@
         document.getElementById('modalIconBg').style.borderColor = `rgba(${cRgb}, 0.4)`;
         document.getElementById('modalIcon').style.color = cColor;
         
+        document.getElementById('modalCityLeader').textContent = city.lideranca ? city.lideranca : 'Nenhuma liderança vinculada';
+
         document.getElementById('modalCityVotes').textContent = formatNumber(city.votes);
         document.getElementById('modalCityMeta').textContent = formatNumber(city.metaVotes);
         document.getElementById('modalCityActiveVoters').textContent = formatNumber(city.activeVoters);
@@ -451,6 +466,7 @@
         
         const m = document.getElementById('cityInfoModal'); m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); m.children[0].classList.remove('scale-95'); }, 10);
     }
+    
     function closeCityModal() {
         currentSelectedCityId = null; refreshMarkers();
         const m = document.getElementById('cityInfoModal'); m.classList.add('opacity-0'); m.children[0].classList.add('scale-95'); setTimeout(() => m.classList.add('hidden'), 200);
@@ -514,6 +530,7 @@
             document.getElementById('adminActiveVotersInput').value = c.activeVoters; 
             document.getElementById('adminPopInput').value = c.population; 
             document.getElementById('adminCityColor').value = c.color || '#10b981';
+            document.getElementById('adminLeaderInput').value = c.lideranca || '';
         } 
     }
     
@@ -529,12 +546,13 @@
             c.activeVoters = parseInt(document.getElementById('adminActiveVotersInput').value)||0; 
             c.population = parseInt(document.getElementById('adminPopInput').value)||0;
             c.color = document.getElementById('adminCityColor').value;
+            c.lideranca = document.getElementById('adminLeaderInput').value;
             
             CITIES_DATA.sort((a,b)=>b.votes-a.votes); renderCities(document.getElementById('searchInput').value); updateChartAndSummary(); refreshMarkers();
             
             if(!SCRIPT_URL.includes('COLE_AQUI')) {
                 try { 
-                    const payload = JSON.stringify({ action: 'updateCity', name: c.name, votes: c.votes, population: c.population, activeVoters: c.activeVoters, metaVotes: c.metaVotes, color: c.color });
+                    const payload = JSON.stringify({ action: 'updateCity', name: c.name, votes: c.votes, population: c.population, activeVoters: c.activeVoters, metaVotes: c.metaVotes, color: c.color, lideranca: c.lideranca });
                     await fetch(SCRIPT_URL, { 
                         method: 'POST', 
                         mode: 'no-cors',
@@ -560,7 +578,6 @@
         }
     }
 
-    // ARRANQUE SEGURO
     document.addEventListener('DOMContentLoaded', async () => {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'light') {
